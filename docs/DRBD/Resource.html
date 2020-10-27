@@ -1,0 +1,213 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>LINBIT::DRBD::Resource - DRBD9 resource related methods</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:root@localhost" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#VERSION">VERSION</a></li>
+  <li><a href="#METHODS">METHODS</a>
+    <ul>
+      <li><a href="#new">new()</a></li>
+      <li><a href="#add_volume">add_volume()</a></li>
+      <li><a href="#add_node">add_node()</a></li>
+      <li><a href="#set_mesh">set_mesh()</a></li>
+      <li><a href="#add_connection">add_connection()</a></li>
+      <li><a href="#set_net_option">set_net_option()</a></li>
+      <li><a href="#set_disk_option">set_disk_option()</a></li>
+      <li><a href="#set_options_option">set_options_option()</a></li>
+      <li><a href="#write_resource_file">write_resource_file()</a></li>
+      <li><a href="#DRBD-Commands">DRBD Commands</a>
+        <ul>
+          <li><a href="#up">up()</a></li>
+          <li><a href="#down">down()</a></li>
+          <li><a href="#primary">primary()</a></li>
+          <li><a href="#secondary">secondary()</a></li>
+          <li><a href="#create_md">create_md()</a></li>
+          <li><a href="#initial_sync">initial_sync()</a></li>
+          <li><a href="#status">status()</a></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li><a href="#EXAMPLES">EXAMPLES</a>
+    <ul>
+      <li><a href="#Creating-a-new-resource-on-two-nodes">Creating a new resource on two nodes</a></li>
+      <li><a href="#Query-the-status-of-an-existing-resource">Query the status of an existing resource</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="NAME">NAME</h1>
+
+<p>LINBIT::DRBD::Resource - DRBD9 resource related methods</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code>        use LINBIT::DRBD::Resource;</code></pre>
+
+<p>Methods return the object itself, which allows for:</p>
+
+<pre><code>        my $res = LINBIT::DRBD::Resource-&gt;new(&#39;rck&#39;)
+                -&gt;add_volume($v0)
+                -&gt;add_node($n0)-&gt;add_node($n1);</code></pre>
+
+<h1 id="VERSION">VERSION</h1>
+
+<p>0.0.0</p>
+
+<h1 id="METHODS">METHODS</h1>
+
+<h2 id="new">new()</h2>
+
+<pre><code>        my $res = LINBIT::DRBD::Resource-&gt;new(&#39;resname&#39;);</code></pre>
+
+<p>Create a new resource object with the given DRBD resource name.</p>
+
+<h2 id="add_volume">add_volume()</h2>
+
+<pre><code>        $res-&gt;add_volume($volume);</code></pre>
+
+<p>Add a DRBD volume (see <code>LINBIT::DRBD::Volume</code>) to a resource.</p>
+
+<h2 id="add_node">add_node()</h2>
+
+<pre><code>        $res-&gt;add_node($node);</code></pre>
+
+<p>Add a DRBD node (see <code>LINBIT::DRBD::Node</code>) to a resource.</p>
+
+<h2 id="set_mesh">set_mesh()</h2>
+
+<pre><code>        $res-&gt;set_mesh(1);</code></pre>
+
+<p>If set to true, the res file is generated with a <code>connection-mesh</code> directive. This is useful when the cluster consists of many nodes (and therefor many connections between nodes).</p>
+
+<h2 id="add_connection">add_connection()</h2>
+
+<pre><code>        $res-&gt;add_connection($n1, $n2);</code></pre>
+
+<p>Adds a connection between two nodes (i.e., <code>LINBIT::DRBD::Node</code> objects).</p>
+
+<h2 id="set_net_option">set_net_option()</h2>
+
+<pre><code>        $res-&gt;set_net_option(&#39;key&#39;, &#39;value&#39;);</code></pre>
+
+<p>Sets an option in the net-section of the resource file.</p>
+
+<h2 id="set_disk_option">set_disk_option()</h2>
+
+<pre><code>        $res-&gt;set_disk_option(&#39;key&#39;, &#39;value&#39;);</code></pre>
+
+<p>Sets an option in the disk-section of the resource file.</p>
+
+<h2 id="set_options_option">set_options_option()</h2>
+
+<pre><code>        $res-&gt;set_options_option(&#39;key&#39;, &#39;value&#39;);</code></pre>
+
+<p>Sets an option in the options-section of the resource file.</p>
+
+<h2 id="write_resource_file">write_resource_file()</h2>
+
+<pre><code>        $res-&gt;write_resource_file(&#39;/etc/drbd.d/r1.res&#39;);</code></pre>
+
+<p>Writes a resource file. If a path is given, the resource file gets written to that path. If &#39;-&#39; is given, the resource file is printed to <code>STDOUT</code>, and if the parameter is not defined, <i>/etc/drbd.d/${resname}.res</i> is used.</p>
+
+<h2 id="DRBD-Commands">DRBD Commands</h2>
+
+<p>These commands are almost directly mapped to the according <code>drbdadm</code> or <code>drbdsetup</code> commands.</p>
+
+<h3 id="up">up()</h3>
+
+<pre><code>        $res-&gt;up();</code></pre>
+
+<p>Calls <code>drbdadm up $resname</code></p>
+
+<h3 id="down">down()</h3>
+
+<pre><code>        $res-&gt;down();</code></pre>
+
+<p>Calls <code>drbdadm down $resname</code></p>
+
+<h3 id="primary">primary()</h3>
+
+<pre><code>        $res-&gt;pirmary();</code></pre>
+
+<p>Calls <code>drbdadm primary $resname</code></p>
+
+<h3 id="secondary">secondary()</h3>
+
+<pre><code>        $res-&gt;pirmary();</code></pre>
+
+<p>Calls <code>drbdadm secondary $resname</code></p>
+
+<h3 id="create_md">create_md()</h3>
+
+<pre><code>        $res-&gt;create_md();</code></pre>
+
+<p>Calls <code>drbdadm create-md --force $resname</code></p>
+
+<h3 id="initial_sync">initial_sync()</h3>
+
+<pre><code>        $res-&gt;create_md();</code></pre>
+
+<p>Starts an initial sync by calling <code>drbdadm primary --force $resname</code></p>
+
+<h3 id="status">status()</h3>
+
+<pre><code>        $res-&gt;status();</code></pre>
+
+<p>Calls <code>drbdsetup status --json $resname</code> and return the hash matching this resource.</p>
+
+<h1 id="EXAMPLES">EXAMPLES</h1>
+
+<h2 id="Creating-a-new-resource-on-two-nodes">Creating a new resource on two nodes</h2>
+
+<pre><code>        use LINBIT::DRBD::Resource;
+        use LINBIT::DRBD::Volume;
+        use LINBIT::DRBD::Node;
+        
+        my $v0 = LINBIT::DRBD::Volume-&gt;new(0)
+                 -&gt;set_disk(&#39;/dev/lvm-local/rck&#39;)
+                 -&gt;set_minor(23);
+        
+        my $n0 = LINBIT::DRBD::Node-&gt;new(&#39;alpha&#39;, 0)
+                 -&gt;set_address(&#39;192.168.122.94&#39;)-&gt;set_port(2342);
+        
+        my $n1 = LINBIT::DRBD::Node-&gt;new(&#39;bravo&#39;, 1)
+                 -&gt;set_address(&#39;192.168.122.95&#39;)-&gt;set_port(2342);
+        
+        my $r = LINBIT::DRBD::Resource-&gt;new(&quot;rck&quot;);
+        $r-&gt;add_volume($v0);
+        $r-&gt;add_node($n0)-&gt;add_node($n1);
+        $r-&gt;add_connection($n0, $n1);
+        $r-&gt;set_net_option(&#39;allow-two-primaries&#39;, &#39;yes&#39;);
+        
+        $r-&gt;write_resource_file(); # implicit to /etc/drbd.d/rck.res
+        $r-&gt;create_md();
+        $r-&gt;up();
+        # on one node one would call $r-&gt;initial_sync();</code></pre>
+
+<h2 id="Query-the-status-of-an-existing-resource">Query the status of an existing resource</h2>
+
+<pre><code>        use LINBIT::DRBD::Resource;
+        
+        my $r = LINBIT::DRBD::Resource-&gt;new(&#39;rck&#39;);
+        my $s = $r-&gt;status();
+        
+        print &quot;my current role is &#39;$s-&gt;{role}&#39; and I&#39;m &#39;$s-&gt;{devices}[0]{&#39;disk-state&#39;}&#39;\n&quot;;</code></pre>
+
+
+</body>
+
+</html>
+
+
