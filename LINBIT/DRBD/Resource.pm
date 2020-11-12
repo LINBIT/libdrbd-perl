@@ -168,12 +168,13 @@ sub _write_options {
     my $self = shift;
 
     for my $section ( "net", "disk", "options" ) {
-        $self->_pi("$section {\n");
+        my $opt_dict = $self->{"${section}_options"};
+		  next if !defined($opt_dict);
 
-        my $opt_dict = "${section}_options";
+        $self->_pi("$section {\n");
         $self->{indent}++;
-        for my $k ( keys %{ $self->{$opt_dict} } ) {
-            $self->_pi("$k $self->{$opt_dict}->{$k};\n");
+        for my $k ( keys %{ $opt_dict } ) {
+            $self->_pi("$k $opt_dict->{$k};\n");
         }
         $self->{indent}--;
 
