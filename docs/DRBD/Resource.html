@@ -25,6 +25,8 @@
       <li><a href="#set_net_option">set_net_option()</a></li>
       <li><a href="#set_disk_option">set_disk_option()</a></li>
       <li><a href="#set_options_option">set_options_option()</a></li>
+      <li><a href="#set_comment-key-value">set_comment(&#39;key&#39;, [&#39;value&#39;])</a></li>
+      <li><a href="#get_comment-key">get_comment(&#39;key&#39;)</a></li>
       <li><a href="#write_resource_file">write_resource_file()</a></li>
       <li><a href="#DRBD-Commands">DRBD Commands</a>
         <ul>
@@ -115,6 +117,19 @@
 <pre><code>        $res-&gt;set_options_option(&#39;key&#39;, &#39;value&#39;);</code></pre>
 
 <p>Sets an option in the options-section of the resource file.</p>
+
+<h2 id="set_comment-key-value">set_comment(&#39;key&#39;, [&#39;value&#39;])</h2>
+
+<pre><code>        $res-&gt;set_comment(&#39;foo&#39;);
+        $res-&gt;set_comment(&#39;bar&#39;, &#39;baz&#39;);</code></pre>
+
+<p>Sets a comment in the resource object. These are written as comments in the resource file. This can be used as a simple key/value store when serializing/deserializing resources.</p>
+
+<h2 id="get_comment-key">get_comment(&#39;key&#39;)</h2>
+
+<pre><code>        $res-&gt;get_comment(&#39;bar&#39;);</code></pre>
+
+<p>Gets the value of a comment if it had one. If it was a plain comment, or it does not exist, it returns undef.</p>
 
 <h2 id="write_resource_file">write_resource_file()</h2>
 
@@ -212,9 +227,11 @@
 
 <pre><code>        use Storable;
         my $r = LINBIT::DRBD::Resource-&gt;new(&quot;rck&quot;); # and more
+        $r-&gt;set_comment(&#39;initial-uuid&#39;, &#39;ffff888056ff5897::::1:1&#39;);
         $r-&gt;store(&#39;/etc/drbd.d/rck.res.dump&#39;);
         # later...
-        my $r2 = retrieve(&#39;/etc/drbd.d/rck.res.dump&#39;);</code></pre>
+        my $r2 = retrieve(&#39;/etc/drbd.d/rck.res.dump&#39;);
+        print $r2-&gt;get_comment(&#39;initial-uuid&#39;);</code></pre>
 
 
 </body>
