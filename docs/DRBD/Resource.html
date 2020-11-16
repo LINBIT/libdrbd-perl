@@ -43,6 +43,7 @@
     <ul>
       <li><a href="#Creating-a-new-resource-on-two-nodes">Creating a new resource on two nodes</a></li>
       <li><a href="#Query-the-status-of-an-existing-resource">Query the status of an existing resource</a></li>
+      <li><a href="#Extend-an-existing-resource">Extend an existing resource</a></li>
     </ul>
   </li>
 </ul>
@@ -204,6 +205,16 @@
         my $s = $r-&gt;status();
         
         print &quot;my current role is &#39;$s-&gt;{role}&#39; and I&#39;m &#39;$s-&gt;{devices}[0]{&#39;disk-state&#39;}&#39;\n&quot;;</code></pre>
+
+<h2 id="Extend-an-existing-resource">Extend an existing resource</h2>
+
+<p>In order to extend a resource at a later point in time, one has to serialize its state.</p>
+
+<pre><code>        use Storable;
+        my $r = LINBIT::DRBD::Resource-&gt;new(&quot;rck&quot;); # and more
+        $r-&gt;store(&#39;/etc/drbd.d/rck.res.dump&#39;);
+        # later...
+        my $r2 = retrieve(&#39;/etc/drbd.d/rck.res.dump&#39;);</code></pre>
 
 
 </body>
