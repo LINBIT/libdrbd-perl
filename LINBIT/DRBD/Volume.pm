@@ -74,3 +74,70 @@ sub set_disk_option {
 }
 
 1;
+__END__
+
+LINBIT::DRBD::Volume - DRBD9 volume related methods
+
+=head1 SYNOPSIS
+
+	use LINBIT::DRBD::Volume;
+
+Methods return the object itself, which allows for:
+
+	my $connection = LINBIT::DRBD::Volume->new(1)
+		->set_disk("/dev/thinpool/disk1")
+		->set_external_metadata("/dev/thinpool/disk1_md");
+
+=head1 VERSION
+
+0.0.0
+
+=head1 METHODS
+
+=head2 new($id)
+
+	my $vol = LINBIT::DRBD::Volume->new(0);
+
+Create a new volume object with the given volume ID.
+
+=head2 set_disk($blockdev)
+
+	$vol->set_disk("/dev/thinpool/disk1");
+
+Set the DRBD backing device.
+
+=head2 set_diskless()
+
+	$vol->set_diskless();
+
+Set the DRBD backing device to "none" (i.e., diskless).
+
+=head2 set_internal_metadata()
+
+	$vol->set_internal_metadata();
+
+Set the DRBD backing device to contain internal DRBD meta-data.
+
+=head2 set_external_metadata($blockdev)
+
+	$vol->set_external_metadata("/dev/thinpool/disk1_md");
+
+Set the DRBD backing device to contain external DRBD meta-data at the specified block device.
+
+=head2 set_minor($minor_number)
+
+	$vol->set_minor(1000);
+
+Set the DRBD volume's block device minor number.
+
+=head2 set_minor($minor_number)
+
+	$vol->set_minor(1000);
+
+Set the DRBD volume's block device minor number.
+
+=head2 set_disk_option()
+
+	$vol->set_disk_option('key', 'value');
+
+Sets an option in the disk-section of this volume.

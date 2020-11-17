@@ -11,6 +11,87 @@
 
 
 
+<ul id="index">
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#VERSION">VERSION</a></li>
+  <li><a href="#METHODS">METHODS</a>
+    <ul>
+      <li><a href="#new-id">new($id)</a></li>
+      <li><a href="#set_disk-blockdev">set_disk($blockdev)</a></li>
+      <li><a href="#set_diskless">set_diskless()</a></li>
+      <li><a href="#set_internal_metadata">set_internal_metadata()</a></li>
+      <li><a href="#set_external_metadata-blockdev">set_external_metadata($blockdev)</a></li>
+      <li><a href="#set_minor-minor_number">set_minor($minor_number)</a></li>
+      <li><a href="#set_minor-minor_number1">set_minor($minor_number)</a></li>
+      <li><a href="#set_disk_option">set_disk_option()</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code>        use LINBIT::DRBD::Volume;</code></pre>
+
+<p>Methods return the object itself, which allows for:</p>
+
+<pre><code>        my $connection = LINBIT::DRBD::Volume-&gt;new(1)
+                -&gt;set_disk(&quot;/dev/thinpool/disk1&quot;)
+                -&gt;set_external_metadata(&quot;/dev/thinpool/disk1_md&quot;);</code></pre>
+
+<h1 id="VERSION">VERSION</h1>
+
+<p>0.0.0</p>
+
+<h1 id="METHODS">METHODS</h1>
+
+<h2 id="new-id">new($id)</h2>
+
+<pre><code>        my $vol = LINBIT::DRBD::Volume-&gt;new(0);</code></pre>
+
+<p>Create a new volume object with the given volume ID.</p>
+
+<h2 id="set_disk-blockdev">set_disk($blockdev)</h2>
+
+<pre><code>        $vol-&gt;set_disk(&quot;/dev/thinpool/disk1&quot;);</code></pre>
+
+<p>Set the DRBD backing device.</p>
+
+<h2 id="set_diskless">set_diskless()</h2>
+
+<pre><code>        $vol-&gt;set_diskless();</code></pre>
+
+<p>Set the DRBD backing device to &quot;none&quot; (i.e., diskless).</p>
+
+<h2 id="set_internal_metadata">set_internal_metadata()</h2>
+
+<pre><code>        $vol-&gt;set_internal_metadata();</code></pre>
+
+<p>Set the DRBD backing device to contain internal DRBD meta-data.</p>
+
+<h2 id="set_external_metadata-blockdev">set_external_metadata($blockdev)</h2>
+
+<pre><code>        $vol-&gt;set_external_metadata(&quot;/dev/thinpool/disk1_md&quot;);</code></pre>
+
+<p>Set the DRBD backing device to contain external DRBD meta-data at the specified block device.</p>
+
+<h2 id="set_minor-minor_number">set_minor($minor_number)</h2>
+
+<pre><code>        $vol-&gt;set_minor(1000);</code></pre>
+
+<p>Set the DRBD volume&#39;s block device minor number.</p>
+
+<h2 id="set_minor-minor_number1">set_minor($minor_number)</h2>
+
+<pre><code>        $vol-&gt;set_minor(1000);</code></pre>
+
+<p>Set the DRBD volume&#39;s block device minor number.</p>
+
+<h2 id="set_disk_option">set_disk_option()</h2>
+
+<pre><code>        $vol-&gt;set_disk_option(&#39;key&#39;, &#39;value&#39;);</code></pre>
+
+<p>Sets an option in the disk-section of this volume.</p>
+
 
 </body>
 
