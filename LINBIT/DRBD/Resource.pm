@@ -66,10 +66,10 @@ sub set_mesh {
 }
 
 sub add_connection {
-    my ( $self, $host1, $host2 ) = @_;
+    my ( $self, $connection ) = @_;
 
     $self->{is_mesh} = 0;
-    push( @{ $self->{connections} }, [ $host1, $host2 ] );
+    push( @{ $self->{connections} }, $connection );
 
     return $self;
 }
@@ -115,20 +115,24 @@ sub _pi {
     print $fh "    " x $self->{indent}, @_;
 }
 
+# strict is used for "real volumes", where non strict is used if we are only interested in the disk options.
 sub _write_volume {
-    my ( $self, $volume ) = @_;
+    my ( $self, $volume, $strict ) = @_;
 
-    die "Volume does not have a 'disk'" unless defined $volume->{disk};
-    die "Volume does not have a 'meta-disk'"
-      unless defined $volume->{meta_data};
-    die "Volume does not have a 'minor'" unless defined $volume->{minor};
+    if ($strict) {
+        die "Volume does not have a 'disk'" unless defined $volume->{disk};
+        die "Volume does not have a 'meta-disk'"
+          unless defined $volume->{meta_data};
+        die "Volume does not have a 'minor'" unless defined $volume->{minor};
+    }
 
     $self->_pi("volume $volume->{id} {\n");
 
     $self->{indent}++;
-    $self->_pi("disk $volume->{disk};\n");
-    $self->_pi("meta-disk $volume->{meta_data};\n");
-    $self->_pi("device minor $volume->{minor};\n");
+    $self->_pi("disk $volume->{disk};\n") if defined $volume->{disk};
+    $self->_pi("meta-disk $volume->{meta_data};\n")
+      if defined $volume->{disk}; # use disk here as well as it has a default value
+    $self->_pi("device minor $volume->{minor};\n") if defined $volume->{minor};
     for my $section ("disk") {
         my $opt_dict = $volume->{"${section}_options"};
         $self->_write_options_section( $opt_dict, $section );
@@ -145,7 +149,7 @@ sub _write_node {
 
     $self->{indent}++;
     foreach ( @{ $node->{volumes} } ) {
-        $self->_write_volume($_);
+        $self->_write_volume($_, 1);
     }
     $self->_pi(
         "address $node->{address_type} $node->{address}:$node->{port};\n");
@@ -156,14 +160,24 @@ sub _write_node {
 }
 
 sub _write_connection {
-    my ( $self, $h1, $h2 ) = @_;
+    my ( $self, $connection ) = @_;
+
+    my $h1 = $connection->{node1};
+    my $h2 = $connection->{node2};
 
     $self->_pi("connection {\n");
 
     $self->{indent}++;
-	 foreach ($h1, $h2) {
-		$self->_pi("host $_->{name} address $_->{address_type} $_->{address}:$_->{port};\n");
-	  }
+    foreach ( $h1, $h2 ) {
+        $self->_pi( "host $_->{name} address $_->{address_type} $_->{address}:$_->{port};\n" );
+    }
+    foreach ( @{ $connection->{volumes} } ) {
+        $self->_write_volume( $_, 0 );
+    }
+    for my $section ("net", "disk") {
+        my $opt_dict = $connection->{"${section}_options"};
+        $self->_write_options_section( $opt_dict, $section );
+    }
     $self->{indent}--;
 
     $self->_pi("}\n");
@@ -186,7 +200,7 @@ sub _write_connections {
 
     # not a mesh, dedicated connections
     foreach ( @{ $self->{connections} } ) {
-        $self->_write_connection( $_->[0], $_->[1] );
+        $self->_write_connection( $_ );
     }
 }
 
@@ -247,7 +261,7 @@ sub write_resource_file {
     $self->_write_options;
 
     foreach ( @{ $self->{volumes} } ) {
-        $self->_write_volume($_);
+        $self->_write_volume($_, 1);
     }
 
     foreach ( @{ $self->{nodes} } ) {
@@ -381,9 +395,9 @@ If set to true, the res file is generated with a C<connection-mesh> directive. T
 
 =head2 add_connection()
 
-	$res->add_connection($n1, $n2);
+	$res->add_connection($connection)
 
-Adds a connection between two nodes (i.e., C<LINBIT::DRBD::Node> objects).
+Adds a connection between nodes via a C<LINBIT::DRBD::Connection> object.
 
 =head2 set_net_option()
 
@@ -476,6 +490,7 @@ Calls C<drbdsetup status --json $resname> and return the hash matching this reso
 	use LINBIT::DRBD::Resource;
 	use LINBIT::DRBD::Volume;
 	use LINBIT::DRBD::Node;
+	use LINBIT::DRBD::Connection;
 	
 	my $v0 = LINBIT::DRBD::Volume->new(0)
 	         ->set_disk('/dev/lvm-local/rck')
@@ -487,10 +502,12 @@ Calls C<drbdsetup status --json $resname> and return the hash matching this reso
 	my $n1 = LINBIT::DRBD::Node->new('bravo', 1)
 	         ->set_address('192.168.122.95')->set_port(2342);
 	
+	my $c0 = LINBIT::DRBD::Connection->new($n0, $n1);
+	
 	my $r = LINBIT::DRBD::Resource->new("rck");
 	$r->add_volume($v0);
 	$r->add_node($n0)->add_node($n1);
-	$r->add_connection($n0, $n1);
+	$r->add_connection($c0);
 	$r->set_net_option('allow-two-primaries', 'yes');
 	
 	$r->write_resource_file(); # implicit to /etc/drbd.d/rck.res

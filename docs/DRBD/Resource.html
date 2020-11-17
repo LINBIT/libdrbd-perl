@@ -96,9 +96,9 @@
 
 <h2 id="add_connection">add_connection()</h2>
 
-<pre><code>        $res-&gt;add_connection($n1, $n2);</code></pre>
+<pre><code>        $res-&gt;add_connection($connection)</code></pre>
 
-<p>Adds a connection between two nodes (i.e., <code>LINBIT::DRBD::Node</code> objects).</p>
+<p>Adds a connection between nodes via a <code>LINBIT::DRBD::Connection</code> object.</p>
 
 <h2 id="set_net_option">set_net_option()</h2>
 
@@ -190,6 +190,7 @@
 <pre><code>        use LINBIT::DRBD::Resource;
         use LINBIT::DRBD::Volume;
         use LINBIT::DRBD::Node;
+        use LINBIT::DRBD::Connection;
         
         my $v0 = LINBIT::DRBD::Volume-&gt;new(0)
                  -&gt;set_disk(&#39;/dev/lvm-local/rck&#39;)
@@ -201,10 +202,12 @@
         my $n1 = LINBIT::DRBD::Node-&gt;new(&#39;bravo&#39;, 1)
                  -&gt;set_address(&#39;192.168.122.95&#39;)-&gt;set_port(2342);
         
+        my $c0 = LINBIT::DRBD::Connection-&gt;new($n0, $n1);
+        
         my $r = LINBIT::DRBD::Resource-&gt;new(&quot;rck&quot;);
         $r-&gt;add_volume($v0);
         $r-&gt;add_node($n0)-&gt;add_node($n1);
-        $r-&gt;add_connection($n0, $n1);
+        $r-&gt;add_connection($c0);
         $r-&gt;set_net_option(&#39;allow-two-primaries&#39;, &#39;yes&#39;);
         
         $r-&gt;write_resource_file(); # implicit to /etc/drbd.d/rck.res

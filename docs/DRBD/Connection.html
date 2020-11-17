@@ -1,0 +1,78 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title></title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:root@localhost" />
+</head>
+
+<body>
+
+
+
+<ul id="index">
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#VERSION">VERSION</a></li>
+  <li><a href="#METHODS">METHODS</a>
+    <ul>
+      <li><a href="#new">new()</a></li>
+      <li><a href="#set_nodes-n0-n1">set_nodes($n0, $n1)</a></li>
+      <li><a href="#add_volume">add_volume()</a></li>
+      <li><a href="#set_net_option">set_net_option()</a></li>
+      <li><a href="#set_disk_option">set_disk_option()</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code>        use LINBIT::DRBD::Connection;</code></pre>
+
+<p>Methods return the object itself, which allows for:</p>
+
+<pre><code>        my $connection = LINBIT::DRBD::Connection-&gt;new()
+                -&gt;set_nodes($n0, $n1);</code></pre>
+
+<h1 id="VERSION">VERSION</h1>
+
+<p>0.0.0</p>
+
+<h1 id="METHODS">METHODS</h1>
+
+<h2 id="new">new()</h2>
+
+<pre><code>        my $con = LINBIT::DRBD::Resource-&gt;new([n0, n1]);</code></pre>
+
+<p>Create a new connection object with the given <code>LINBIT::DRBD::Node</code> objects.</p>
+
+<h2 id="set_nodes-n0-n1">set_nodes($n0, $n1)</h2>
+
+<pre><code>        $con-&gt;set_nodes($n0, n1);</code></pre>
+
+<p>Set the <code>LINBIT::DRBD::Node</code> objects to the connection.</p>
+
+<h2 id="add_volume">add_volume()</h2>
+
+<pre><code>        $con-&gt;add_volume($volume);</code></pre>
+
+<p>Add a DRBD volume (see <code>LINBIT::DRBD::Volume</code>) to a resource. Usually this is a volume object that only holds peer-device options but not disk/meta-disk.</p>
+
+<h2 id="set_net_option">set_net_option()</h2>
+
+<pre><code>        $con-&gt;set_net_option(&#39;key&#39;, &#39;value&#39;);</code></pre>
+
+<p>Sets an option in the net-section of the connection in the resource file.</p>
+
+<h2 id="set_disk_option">set_disk_option()</h2>
+
+<pre><code>        $con-&gt;set_disk_option(&#39;key&#39;, &#39;value&#39;);</code></pre>
+
+<p>Sets an option in the disk-section of the connection in the resource file. In this context only peer-device-options are useful.</p>
+
+
+</body>
+
+</html>
+
+
