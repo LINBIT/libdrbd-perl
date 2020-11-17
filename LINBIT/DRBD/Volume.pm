@@ -65,4 +65,12 @@ sub set_minor {
     return $self;
 }
 
+sub set_disk_option {
+    my ( $self, $k, $v ) = @_;
+
+    $self->{disk_options}->{$k} = $v;
+
+    return $self;
+}
+
 1;

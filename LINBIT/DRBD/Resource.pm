@@ -129,6 +129,10 @@ sub _write_volume {
     $self->_pi("disk $volume->{disk};\n");
     $self->_pi("meta-disk $volume->{meta_data};\n");
     $self->_pi("device minor $volume->{minor};\n");
+    for my $section ("disk") {
+        my $opt_dict = $volume->{"${section}_options"};
+        $self->_write_options_section( $opt_dict, $section );
+    }
     $self->{indent}--;
 
     $self->_pi("}\n");
@@ -186,21 +190,25 @@ sub _write_connections {
     }
 }
 
+sub _write_options_section {
+    my ( $self, $opt_dict, $section ) = @_;
+    return if !defined($opt_dict);
+
+    $self->_pi("$section {\n");
+    $self->{indent}++;
+    for my $k ( keys %{$opt_dict} ) {
+        $self->_pi("$k $opt_dict->{$k};\n");
+    }
+    $self->{indent}--;
+    $self->_pi("}\n");
+}
+
 sub _write_options {
     my $self = shift;
 
     for my $section ( "net", "disk", "options" ) {
         my $opt_dict = $self->{"${section}_options"};
-		  next if !defined($opt_dict);
-
-        $self->_pi("$section {\n");
-        $self->{indent}++;
-        for my $k ( keys %{ $opt_dict } ) {
-            $self->_pi("$k $opt_dict->{$k};\n");
-        }
-        $self->{indent}--;
-
-        $self->_pi("}\n");
+        $self->_write_options_section( $opt_dict, $section );
     }
 }
 
