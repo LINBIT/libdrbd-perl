@@ -59,6 +59,25 @@ sub add_volume {
 	 return $self;
 }
 
+sub get_volume {
+    my ( $self, $volume_id ) = @_;
+
+    foreach ( @{ $self->{volumes} } ) {
+        return $_ if ( $_->{id} == $volume_id );
+    }
+
+    return undef;
+}
+
+sub delete_volume {
+    my ( $self, $volume_id ) = @_;
+
+    $self->{volumes} =
+      [ grep { $_->{id} != $volume_id } @{ $self->{volumes} } ];
+
+    return $self;
+}
+
 1;
 __END__
 
@@ -88,12 +107,6 @@ Methods return the object itself, which allows for:
 
 Create a new node object with the given host name (has to match C<uname -n>) and a given DRBD node ID.
 
-=head2 add_volume()
-
-	$node->add_volume($volume);
-
-Add a DRBD volume (see C<LINBIT::DRBD::Volume>) to a node. Usually one wants to add a volume to a C<LINBIT::DRBD::Resource> object.
-
 =head2 set_address()
 
 	$node->set_address('1.2.3.4');
@@ -111,3 +124,21 @@ Set the port that is used for the DRBD resource on this node.
 	$node->set_address_type('ipv4');
 
 Set the address type. This can be 'ipv4' (default) or 'ipv6'.
+
+=head2 add_volume()
+
+	$node->add_volume($volume);
+
+Add a DRBD volume (see C<LINBIT::DRBD::Volume>) to a node. Usually one wants to add a volume to a C<LINBIT::DRBD::Resource> object.
+
+=head2 get_volume()
+
+	$node->delete_volume($id);
+
+Get a DRBD volume from a node.
+
+=head2 delete_volume()
+
+	$node->delete_volume($id);
+
+Delete a DRBD volume from a node.

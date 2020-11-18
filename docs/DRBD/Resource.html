@@ -19,14 +19,24 @@
     <ul>
       <li><a href="#new">new()</a></li>
       <li><a href="#add_volume">add_volume()</a></li>
+      <li><a href="#get_volume">get_volume()</a></li>
+      <li><a href="#delete_volume">delete_volume()</a></li>
       <li><a href="#add_node">add_node()</a></li>
+      <li><a href="#get_node">get_node()</a></li>
+      <li><a href="#delete_node">delete_node()</a></li>
       <li><a href="#set_mesh">set_mesh()</a></li>
       <li><a href="#add_connection">add_connection()</a></li>
+      <li><a href="#get_connection">get_connection()</a></li>
+      <li><a href="#delete_connection">delete_connection()</a></li>
       <li><a href="#set_net_option">set_net_option()</a></li>
+      <li><a href="#delete_net_option">delete_net_option()</a></li>
       <li><a href="#set_disk_option">set_disk_option()</a></li>
+      <li><a href="#delete_disk_option">delete_disk_option()</a></li>
       <li><a href="#set_options_option">set_options_option()</a></li>
+      <li><a href="#delete_options_option">delete_options_option()</a></li>
       <li><a href="#set_comment-key-value">set_comment(&#39;key&#39;, [&#39;value&#39;])</a></li>
       <li><a href="#get_comment-key">get_comment(&#39;key&#39;)</a></li>
+      <li><a href="#delete_comment-key">delete_comment(&#39;key&#39;)</a></li>
       <li><a href="#write_resource_file">write_resource_file()</a></li>
       <li><a href="#DRBD-Commands">DRBD Commands</a>
         <ul>
@@ -82,11 +92,35 @@
 
 <p>Add a DRBD volume (see <code>LINBIT::DRBD::Volume</code>) to a resource.</p>
 
+<h2 id="get_volume">get_volume()</h2>
+
+<pre><code>        $res-&gt;get_volume($id);</code></pre>
+
+<p>Get a DRBD volume (see <code>LINBIT::DRBD::Volume</code>) from a resource.</p>
+
+<h2 id="delete_volume">delete_volume()</h2>
+
+<pre><code>        $res-&gt;delete_volume($id);</code></pre>
+
+<p>Delete a DRBD volume (see <code>LINBIT::DRBD::Volume</code>) from a resource.</p>
+
 <h2 id="add_node">add_node()</h2>
 
 <pre><code>        $res-&gt;add_node($node);</code></pre>
 
 <p>Add a DRBD node (see <code>LINBIT::DRBD::Node</code>) to a resource.</p>
+
+<h2 id="get_node">get_node()</h2>
+
+<pre><code>        $res-&gt;get_node($node_name);</code></pre>
+
+<p>Get a DRBD node (see <code>LINBIT::DRBD::Node</code>) from a resource.</p>
+
+<h2 id="delete_node">delete_node()</h2>
+
+<pre><code>        $res-&gt;delete_node($node_name);</code></pre>
+
+<p>Delete a DRBD node (see <code>LINBIT::DRBD::Node</code>) from a resource.</p>
 
 <h2 id="set_mesh">set_mesh()</h2>
 
@@ -100,11 +134,29 @@
 
 <p>Adds a connection between nodes via a <code>LINBIT::DRBD::Connection</code> object.</p>
 
+<h2 id="get_connection">get_connection()</h2>
+
+<pre><code>        $res-&gt;get_connection($node_name1, $node_name2);</code></pre>
+
+<p>Get a connection between two nodes.</p>
+
+<h2 id="delete_connection">delete_connection()</h2>
+
+<pre><code>        $res-&gt;delete_connection($node_name1, $node_name2);</code></pre>
+
+<p>Delete a connection between two nodes.</p>
+
 <h2 id="set_net_option">set_net_option()</h2>
 
 <pre><code>        $res-&gt;set_net_option(&#39;key&#39;, &#39;value&#39;);</code></pre>
 
 <p>Sets an option in the net-section of the resource file.</p>
+
+<h2 id="delete_net_option">delete_net_option()</h2>
+
+<pre><code>        $res-&gt;delete_net_option(&#39;key&#39;);</code></pre>
+
+<p>Delete an option in the net-section of the resource file.</p>
 
 <h2 id="set_disk_option">set_disk_option()</h2>
 
@@ -112,11 +164,23 @@
 
 <p>Sets an option in the disk-section of the resource file.</p>
 
+<h2 id="delete_disk_option">delete_disk_option()</h2>
+
+<pre><code>        $res-&gt;delete_disk_option(&#39;key&#39;);</code></pre>
+
+<p>Delete an option in the disk-section of the resource file.</p>
+
 <h2 id="set_options_option">set_options_option()</h2>
 
 <pre><code>        $res-&gt;set_options_option(&#39;key&#39;, &#39;value&#39;);</code></pre>
 
 <p>Sets an option in the options-section of the resource file.</p>
+
+<h2 id="delete_options_option">delete_options_option()</h2>
+
+<pre><code>        $res-&gt;delete_options_option(&#39;key&#39;);</code></pre>
+
+<p>Delete an option in the options-section of the resource file.</p>
 
 <h2 id="set_comment-key-value">set_comment(&#39;key&#39;, [&#39;value&#39;])</h2>
 
@@ -130,6 +194,12 @@
 <pre><code>        $res-&gt;get_comment(&#39;bar&#39;);</code></pre>
 
 <p>Gets the value of a comment if it had one. If it was a plain comment, or it does not exist, it returns undef.</p>
+
+<h2 id="delete_comment-key">delete_comment(&#39;key&#39;)</h2>
+
+<pre><code>        $res-&gt;delete_comment(&#39;bar&#39;);</code></pre>
+
+<p>Delete the comment.</p>
 
 <h2 id="write_resource_file">write_resource_file()</h2>
 
@@ -234,7 +304,11 @@
         $r-&gt;store(&#39;/etc/drbd.d/rck.res.dump&#39;);
         # later...
         my $r2 = retrieve(&#39;/etc/drbd.d/rck.res.dump&#39;);
-        print $r2-&gt;get_comment(&#39;initial-uuid&#39;);</code></pre>
+        print $r2-&gt;get_comment(&#39;initial-uuid&#39;);
+        
+        # in order to modify an object one has to get a handle first
+        # this can be done via the get_ methods
+        $r2-&gt;get_node(&#39;alpha&#39;)-&gt;set_address(&#39;1.1.1.3&#39;);</code></pre>
 
 
 </body>

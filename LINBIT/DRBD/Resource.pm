@@ -49,10 +49,47 @@ sub add_volume {
     return $self;
 }
 
+sub get_volume {
+    my ( $self, $volume_id ) = @_;
+
+    foreach ( @{ $self->{volumes} } ) {
+        return $_ if ( $_->{id} == $volume_id );
+    }
+
+    return undef;
+}
+
+sub delete_volume {
+    my ( $self, $volume_id ) = @_;
+
+    $self->{volumes} =
+      [ grep { $_->{id} != $volume_id } @{ $self->{volumes} } ];
+
+    return $self;
+}
+
 sub add_node {
     my ( $self, $node ) = @_;
 
     push( @{ $self->{nodes} }, $node );
+
+    return $self;
+}
+
+sub get_node {
+    my ( $self, $node_name ) = @_;
+
+    foreach ( @{ $self->{nodes} } ) {
+        return $_ if ( $_->{name} eq $node_name );
+    }
+
+    return undef;
+}
+
+sub delete_node {
+    my ( $self, $node_name ) = @_;
+
+    $self->{nodes} = [ grep { $_->{name} != $node_name } @{ $self->{nodes} } ];
 
     return $self;
 }
@@ -74,38 +111,102 @@ sub add_connection {
     return $self;
 }
 
-sub set_net_option {
-    my ( $self, $k, $v ) = @_;
+sub _canon_connection_hostnames {
+	my ($n1, $n2) = @_;
 
-    $self->{net_options}->{$k} = $v;
+	if ($n1 lt $n2) {
+		return $n1 . '-' . $n2;
+	}
+	return $n2 . '-' . $n1;
+}
+
+sub get_connection {
+    my ( $self, $nodename1, $nodename2 ) = @_;
+
+    my $conn_find = _canon_connection_hostnames( $nodename1, $nodename2 );
+
+    foreach ( @{ $self->{connections} } ) {
+        my ( $n1, $n2 ) = ( $_->{node1}->{name}, $_->{node2}->{name} );
+        return undef unless defined $n1 and defined $n2;
+
+        my $conn_current = _canon_connection_hostnames( $n1, $n2 );
+
+        return $_ if $conn_find eq $conn_current;
+    }
+
+    return undef;
+}
+
+sub delete_connection {
+    my ( $self, $nodename1, $nodename2 ) = @_;
+
+    # is there even such a connection?
+    my $conn = $self->get_connection( $nodename1, $nodename2 );
+    return $self unless defined $conn;
+
+    my ( $name1, $name2 ) = ( $conn->{node1}->{name}, $conn->{node2}->{name} );
+	 # not to confuse with $nodename[12]. These are already in the matching order.
+
+    $self->{connections} = [
+        grep {
+            !( $_->{node1}->{name} eq $name1 and $_->{node2}->{name} eq $name2 )
+        } @{ $self->{connections} }
+    ];
+
+	 return $self;
+}
+
+sub _set_option {
+    my ( $self, $k, $v, $section ) = @_;
+
+    $self->{$section}->{$k} = $v;
 
     return $self;
+}
+
+sub _delete_option {
+    my ( $self, $k, $section ) = @_;
+
+    delete $self->{$section}->{$k};
+
+	 return $self;
+}
+
+sub set_net_option {
+    return _set_option (@_, "net_options");
+}
+
+sub delete_net_option {
+    return _delete_option (@_, "net_options");
 }
 
 sub set_disk_option {
-    my ( $self, $k, $v ) = @_;
+    return _set_option (@_, "disk_options");
+}
 
-    $self->{disk_options}->{$k} = $v;
-
-    return $self;
+sub delete_disk_option {
+    return _delete_option (@_, "disk_options");
 }
 
 sub set_options_option {
-    my ( $self, $k, $v ) = @_;
+    return _set_option (@_, "options_options");
+}
 
-    $self->{options_options}->{$k} = $v;
-
-    return $self;
+sub delete_options_option {
+    return _delete_option (@_, "options_options");
 }
 
 sub set_comment {
-    my ( $self, $k, $v ) = @_;
-    $self->{comments}->{$k} = $v;
+    return _set_option (@_, "comments");
 }
 
 sub get_comment {
     my ( $self, $k ) = @_;
     return $self->{comments}->{$k};
+}
+
+sub delete_comment {
+    return _delete_option (@_, "comments");
 }
 
 # print indented
@@ -381,11 +482,35 @@ Create a new resource object with the given DRBD resource name.
 
 Add a DRBD volume (see C<LINBIT::DRBD::Volume>) to a resource.
 
+=head2 get_volume()
+
+	$res->get_volume($id);
+
+Get a DRBD volume (see C<LINBIT::DRBD::Volume>) from a resource.
+
+=head2 delete_volume()
+
+	$res->delete_volume($id);
+
+Delete a DRBD volume (see C<LINBIT::DRBD::Volume>) from a resource.
+
 =head2 add_node()
 
 	$res->add_node($node);
 
 Add a DRBD node (see C<LINBIT::DRBD::Node>) to a resource.
+
+=head2 get_node()
+
+	$res->get_node($node_name);
+
+Get a DRBD node (see C<LINBIT::DRBD::Node>) from a resource.
+
+=head2 delete_node()
+
+	$res->delete_node($node_name);
+
+Delete a DRBD node (see C<LINBIT::DRBD::Node>) from a resource.
 
 =head2 set_mesh()
 
@@ -399,11 +524,29 @@ If set to true, the res file is generated with a C<connection-mesh> directive. T
 
 Adds a connection between nodes via a C<LINBIT::DRBD::Connection> object.
 
+=head2 get_connection()
+
+	$res->get_connection($node_name1, $node_name2);
+
+Get a connection between two nodes.
+
+=head2 delete_connection()
+
+	$res->delete_connection($node_name1, $node_name2);
+
+Delete a connection between two nodes.
+
 =head2 set_net_option()
 
 	$res->set_net_option('key', 'value');
 
 Sets an option in the net-section of the resource file.
+
+=head2 delete_net_option()
+
+	$res->delete_net_option('key');
+
+Delete an option in the net-section of the resource file.
 
 =head2 set_disk_option()
 
@@ -411,11 +554,23 @@ Sets an option in the net-section of the resource file.
 
 Sets an option in the disk-section of the resource file.
 
+=head2 delete_disk_option()
+
+	$res->delete_disk_option('key');
+
+Delete an option in the disk-section of the resource file.
+
 =head2 set_options_option()
 
 	$res->set_options_option('key', 'value');
 
 Sets an option in the options-section of the resource file.
+
+=head2 delete_options_option()
+
+	$res->delete_options_option('key');
+
+Delete an option in the options-section of the resource file.
 
 =head2 set_comment('key', ['value'])
 
@@ -430,6 +585,12 @@ This can be used as a simple key/value store when serializing/deserializing reso
 	$res->get_comment('bar');
 
 Gets the value of a comment if it had one. If it was a plain comment, or it does not exist, it returns undef.
+
+=head2 delete_comment('key')
+
+	$res->delete_comment('bar');
+
+Delete the comment.
 
 =head2 write_resource_file()
 
@@ -535,3 +696,7 @@ In order to extend a resource at a later point in time, one has to serialize its
 	# later...
 	my $r2 = retrieve('/etc/drbd.d/rck.res.dump');
 	print $r2->get_comment('initial-uuid');
+	
+	# in order to modify an object one has to get a handle first
+	# this can be done via the get_ methods
+	$r2->get_node('alpha')->set_address('1.1.1.3');

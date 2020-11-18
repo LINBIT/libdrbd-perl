@@ -19,8 +19,12 @@
       <li><a href="#new">new()</a></li>
       <li><a href="#set_nodes-n0-n1">set_nodes($n0, $n1)</a></li>
       <li><a href="#add_volume">add_volume()</a></li>
+      <li><a href="#get_volume-id">get_volume($id)</a></li>
+      <li><a href="#delete_volume-id">delete_volume($id)</a></li>
       <li><a href="#set_net_option">set_net_option()</a></li>
+      <li><a href="#delete_net_option">delete_net_option()</a></li>
       <li><a href="#set_disk_option">set_disk_option()</a></li>
+      <li><a href="#delete_disk_option">delete_disk_option()</a></li>
     </ul>
   </li>
 </ul>
@@ -58,17 +62,41 @@
 
 <p>Add a DRBD volume (see <code>LINBIT::DRBD::Volume</code>) to a resource. Usually this is a volume object that only holds peer-device options but not disk/meta-disk.</p>
 
+<h2 id="get_volume-id">get_volume($id)</h2>
+
+<pre><code>        $con-&gt;get_volume(0);</code></pre>
+
+<p>Get a DRBD volume (see <code>LINBIT::DRBD::Volume</code>) from a connection.</p>
+
+<h2 id="delete_volume-id">delete_volume($id)</h2>
+
+<pre><code>        $con-&gt;delete_volume(0);</code></pre>
+
+<p>Delete a DRBD volume (see <code>LINBIT::DRBD::Volume</code>) from a connection.</p>
+
 <h2 id="set_net_option">set_net_option()</h2>
 
 <pre><code>        $con-&gt;set_net_option(&#39;key&#39;, &#39;value&#39;);</code></pre>
 
 <p>Sets an option in the net-section of the connection in the resource file.</p>
 
+<h2 id="delete_net_option">delete_net_option()</h2>
+
+<pre><code>        $con-&gt;delete_net_option(&#39;key&#39;);</code></pre>
+
+<p>Deletes an option in the net-section of the connection in the resource file.</p>
+
 <h2 id="set_disk_option">set_disk_option()</h2>
 
 <pre><code>        $con-&gt;set_disk_option(&#39;key&#39;, &#39;value&#39;);</code></pre>
 
 <p>Sets an option in the disk-section of the connection in the resource file. In this context only peer-device-options are useful.</p>
+
+<h2 id="delete_disk_option">delete_disk_option()</h2>
+
+<pre><code>        $con-&gt;delete_disk_option(&#39;key&#39;);</code></pre>
+
+<p>Delete an option in the disk-section of the connection in the resource file. In this context only peer-device-options are useful.</p>
 
 
 </body>

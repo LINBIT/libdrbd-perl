@@ -18,10 +18,12 @@
   <li><a href="#METHODS">METHODS</a>
     <ul>
       <li><a href="#new">new()</a></li>
-      <li><a href="#add_volume">add_volume()</a></li>
       <li><a href="#set_address">set_address()</a></li>
       <li><a href="#set_port">set_port()</a></li>
       <li><a href="#set_address_type">set_address_type()</a></li>
+      <li><a href="#add_volume">add_volume()</a></li>
+      <li><a href="#get_volume">get_volume()</a></li>
+      <li><a href="#delete_volume">delete_volume()</a></li>
     </ul>
   </li>
 </ul>
@@ -52,12 +54,6 @@
 
 <p>Create a new node object with the given host name (has to match <code>uname -n</code>) and a given DRBD node ID.</p>
 
-<h2 id="add_volume">add_volume()</h2>
-
-<pre><code>        $node-&gt;add_volume($volume);</code></pre>
-
-<p>Add a DRBD volume (see <code>LINBIT::DRBD::Volume</code>) to a node. Usually one wants to add a volume to a <code>LINBIT::DRBD::Resource</code> object.</p>
-
 <h2 id="set_address">set_address()</h2>
 
 <pre><code>        $node-&gt;set_address(&#39;1.2.3.4&#39;);</code></pre>
@@ -75,6 +71,24 @@
 <pre><code>        $node-&gt;set_address_type(&#39;ipv4&#39;);</code></pre>
 
 <p>Set the address type. This can be &#39;ipv4&#39; (default) or &#39;ipv6&#39;.</p>
+
+<h2 id="add_volume">add_volume()</h2>
+
+<pre><code>        $node-&gt;add_volume($volume);</code></pre>
+
+<p>Add a DRBD volume (see <code>LINBIT::DRBD::Volume</code>) to a node. Usually one wants to add a volume to a <code>LINBIT::DRBD::Resource</code> object.</p>
+
+<h2 id="get_volume">get_volume()</h2>
+
+<pre><code>        $node-&gt;delete_volume($id);</code></pre>
+
+<p>Get a DRBD volume from a node.</p>
+
+<h2 id="delete_volume">delete_volume()</h2>
+
+<pre><code>        $node-&gt;delete_volume($id);</code></pre>
+
+<p>Delete a DRBD volume from a node.</p>
 
 
 </body>

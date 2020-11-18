@@ -65,12 +65,28 @@ sub set_minor {
     return $self;
 }
 
-sub set_disk_option {
-    my ( $self, $k, $v ) = @_;
+sub _set_option {
+    my ( $self, $k, $v, $section ) = @_;
 
-    $self->{disk_options}->{$k} = $v;
+    $self->{$section}->{$k} = $v;
 
     return $self;
+}
+
+sub _delete_option {
+    my ( $self, $k, $section ) = @_;
+
+    delete $self->{$section}->{$k};
+
+    return $self;
+}
+
+sub set_disk_option {
+    return _set_option (@_, "disk_options");
+}
+
+sub delete_disk_option {
+    return _delete_option (@_, "disk_options");
 }
 
 1;
@@ -141,3 +157,9 @@ Set the DRBD volume's block device minor number.
 	$vol->set_disk_option('key', 'value');
 
 Sets an option in the disk-section of this volume.
+
+=head2 delte_disk_option()
+
+	$vol->delete_disk_option('key');
+
+Deletes an option in the disk-section of this volume.
