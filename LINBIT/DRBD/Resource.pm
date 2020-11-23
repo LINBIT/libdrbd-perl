@@ -198,7 +198,11 @@ sub delete_options_option {
 }
 
 sub set_comment {
-    return _set_option (@_, "comments");
+    # key with out a value, "plain comment"
+    if ( scalar @_ == 2 ) {
+        push @_, undef;
+    }
+    return _set_option( @_, "comments" );
 }
 
 sub get_comment {
