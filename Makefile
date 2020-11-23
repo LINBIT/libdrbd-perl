@@ -1,6 +1,5 @@
 DESTDIR=
 PREFIX=/usr
-REL=linstor-proxmox-$(VERSION)
 
 export PERLDIR=${PREFIX}/share/perl5
 
