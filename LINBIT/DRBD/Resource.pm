@@ -439,7 +439,7 @@ sub initial_sync {
 sub create_md {
     my $self = shift;
 
-    $self->_drbdadm( "create-md", "--force" );
+    $self->_drbdadm( "create-md", "--force", "--max-peers=7" );
 }
 
 sub status {
