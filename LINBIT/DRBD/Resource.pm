@@ -24,7 +24,8 @@ use JSON::XS qw( decode_json );
 use Carp qw( confess );
 use File::Spec;
 
-use parent 'Storable';
+# should be: use parent "Storable"; but we need to support very old perl
+use Storable; our @ISA="Storable";
 
 sub new {
     my ( $class, $name ) = @_;
