@@ -698,7 +698,7 @@ Writes a resource file. If a path is given, the resource file gets written to th
 
 =head2 DRBD Commands
 
-These commands are almost directly mapped to the according C<drbdadm> or C<drbdsetup> commands.
+These commands are almost directly mapped to the according C<drbdadm> or C<drbdsetup> commands. In case of an error, commands in this section call C<die()>.
 
 =head3 up()
 
