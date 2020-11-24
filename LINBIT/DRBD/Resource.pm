@@ -23,6 +23,7 @@ use warnings;
 use JSON::XS qw( decode_json );
 use Carp qw( confess );
 use File::Spec;
+use Data::UUID;
 
 # should be: use parent "Storable"; but we need to support very old perl
 use Storable; our @ISA="Storable";
@@ -214,6 +215,40 @@ sub delete_comment {
     return _delete_option (@_, "comments");
 }
 
+sub _add_reserved_prefix {
+    return '__libdrbd-perl-' . $_[0];
+}
+
+sub _initial_uuid_prefix {
+    return _add_reserved_prefix('initial-uuid');
+}
+
+sub set_random_initial_uuid {
+    my $self = shift;
+    my $ui   = Data::UUID->new();
+
+    return $self->set_comment( _initial_uuid_prefix,
+        substr( $ui->create_hex(), 2 + 16, -1 )
+          . sprintf( '%X', int( rand(16) ) & 0xe ) )
+      ; # 2 for 0x; skip unused 16 (64bit of 128bit UUID), strip last, add random hex without the Primary flag set
+}
+
+sub set_initial_uuid {
+    my ($self, $uuid) = @_;
+
+    return $self->set_comment( _initial_uuid_prefix, $uuid);
+}
+
+sub get_initial_uuid {
+    my $self = shift;
+    return $self->get_comment( _initial_uuid_prefix );
+}
+
+sub delete_initial_uuid {
+    my $self = shift;
+    return $self->delete_comment( _initial_uuid_prefix );
+}
+
 # print indented
 sub _pi {
     my $self = shift;
@@ -391,13 +426,29 @@ sub write_resource_file {
     return $self;
 }
 
+sub __drbdadm {
+    my $self = shift;
+    my @cmd  = @_;
+
+    system( "drbdadm", @cmd ) == 0
+      or die "Could not execute drbdadm @{cmd}: $!";
+}
+
 sub _drbdadm {
     my $self = shift;
     my @cmd  = @_;
 
-    push( @cmd, $self->{name} );
-    system( "drbdadm", @cmd ) == 0
-      or die "Could not execute drbdadm @{cmd}: $!";
+    push( @cmd, "$self->{name}" );
+    return $self->__drbdadm(@cmd);
+}
+
+sub _drbdadm_volume {
+    my $self   = shift;
+    my $volume = shift;
+    my @cmd    = @_;
+
+    push( @cmd, "$self->{name}/$volume" );
+    return $self->__drbdadm(@cmd);
 }
 
 sub adjust {
@@ -437,9 +488,27 @@ sub initial_sync {
 }
 
 sub create_md {
-    my $self = shift;
+    my ( $self, $volume, $uuid, $uptodate ) = @_;
 
-    $self->_drbdadm( "create-md", "--force", "--max-peers=7" );
+    $self->_drbdadm_volume( $volume, "create-md", "--force", "--max-peers=7" );
+
+    if ( defined $uuid ) {
+        my $history1 = '0';
+        my $gid      = $uuid . ':';
+        $gid .= '0:' . $history1 . ':0:';
+
+        $uptodate = 1 if not defined $uptodate;
+
+# in this case this really is the sane default if the user did not specify otherwise
+# the only use case I can imagine is if the meta-data needs to be restored for whatever reason
+# one still wants to set the saved UUID, but not set the data UpToDate to trigger a sync.
+        if ($uptodate) {
+            $gid .= '1:1:';    #UpToDate
+        }
+
+        # yes, here the syntax is weird/reverse
+        $self->_drbdadm_volume( $volume, "$gid", "set-gi", "--force", );
+    }
 }
 
 sub status {
@@ -597,6 +666,30 @@ Gets the value of a comment if it had one. If it was a plain comment, or it does
 
 Delete the comment.
 
+=head2 set_random_initial_uuid()
+
+	$res->set_random_initial_uuid();
+
+Generate a random UUID that can be used for skipping the initial sync.
+
+=head2 set_initial_uuid($uuid)
+
+	$res->set_initial_uuid();
+
+Set a UUID that can be used for skipping the initial sync.
+
+=head2 get_initial_uuid()
+
+	$res->get_initial_uuid();
+
+Get the stored UUID that can be used for skipping the initial sync.
+
+=head2 delete_initial_uuid()
+
+	$res->delete_initial_uuid();
+
+Delete the stored initial UUID that can be used for skipping the initial sync.
+
 =head2 write_resource_file()
 
 	$res->write_resource_file('/etc/drbd.d/r1.res');
@@ -631,15 +724,15 @@ Calls C<drbdadm primary $resname>
 
 Calls C<drbdadm secondary $resname>
 
-=head3 create_md()
+=head3 create_md($volid, [$gid, [$up2date]])
 
-	$res->create_md();
+	$res->create_md(0);
 
-Calls C<drbdadm create-md --force $resname>
+Calls C<drbdadm create-md --force $resname/$volid>. If a $gid is given, it is set via C<drbdadm set-gi>. $up2date is only used if a $gid is given and it's default is true/1.
 
 =head3 initial_sync()
 
-	$res->create_md();
+	$res->initial_sync();
 
 Starts an initial sync by calling C<drbdadm primary --force $resname>
 
@@ -677,7 +770,7 @@ Calls C<drbdsetup status --json $resname> and return the hash matching this reso
 	$r->set_net_option('allow-two-primaries', 'yes');
 	
 	$r->write_resource_file(); # implicit to /etc/drbd.d/rck.res
-	$r->create_md();
+	$r->create_md(0);
 	$r->up();
 	# on one node one would call $r->initial_sync();
 
@@ -705,3 +798,24 @@ In order to extend a resource at a later point in time, one has to serialize its
 	# in order to modify an object one has to get a handle first
 	# this can be done via the get_ methods
 	$r2->get_node('alpha')->set_address('1.1.1.3');
+
+=head2 Skipping the initial sync
+
+If one uses backing devices that guarantee that they read 0s, or where the backing devices are zeroed locally
+by other means, it makes sense to skip the initial sync. This needs a shared initial DRBD generation ID from
+where then the actual sync starts. With the library one can do that like this:
+
+	# # first node:
+	# setup the resource as usual and then do:
+	$r->set_random_initial_uuid();
+	$r->write_resource_file();
+	$r->store('/path/res.db');
+	$r->create_md($volid, $r->get_initial_uuid());
+	$r->up();
+	$r->initial_sync();
+	
+	# # other nodes (after copying the stored file)
+	my $r = retrieve('/path/res.db');
+	$r->write_resource_file();
+	$r->create_md($volid, $r->get_initial_uuid());
+	$r->up();

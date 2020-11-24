@@ -37,6 +37,10 @@
       <li><a href="#set_comment-key-value">set_comment(&#39;key&#39;, [&#39;value&#39;])</a></li>
       <li><a href="#get_comment-key">get_comment(&#39;key&#39;)</a></li>
       <li><a href="#delete_comment-key">delete_comment(&#39;key&#39;)</a></li>
+      <li><a href="#set_random_initial_uuid">set_random_initial_uuid()</a></li>
+      <li><a href="#set_initial_uuid-uuid">set_initial_uuid($uuid)</a></li>
+      <li><a href="#get_initial_uuid">get_initial_uuid()</a></li>
+      <li><a href="#delete_initial_uuid">delete_initial_uuid()</a></li>
       <li><a href="#write_resource_file">write_resource_file()</a></li>
       <li><a href="#DRBD-Commands">DRBD Commands</a>
         <ul>
@@ -44,7 +48,7 @@
           <li><a href="#down">down()</a></li>
           <li><a href="#primary">primary()</a></li>
           <li><a href="#secondary">secondary()</a></li>
-          <li><a href="#create_md">create_md()</a></li>
+          <li><a href="#create_md-volid-gid-up2date">create_md($volid, [$gid, [$up2date]])</a></li>
           <li><a href="#initial_sync">initial_sync()</a></li>
           <li><a href="#status">status()</a></li>
         </ul>
@@ -56,6 +60,7 @@
       <li><a href="#Creating-a-new-resource-on-two-nodes">Creating a new resource on two nodes</a></li>
       <li><a href="#Query-the-status-of-an-existing-resource">Query the status of an existing resource</a></li>
       <li><a href="#Extend-an-existing-resource">Extend an existing resource</a></li>
+      <li><a href="#Skipping-the-initial-sync">Skipping the initial sync</a></li>
     </ul>
   </li>
 </ul>
@@ -201,6 +206,30 @@
 
 <p>Delete the comment.</p>
 
+<h2 id="set_random_initial_uuid">set_random_initial_uuid()</h2>
+
+<pre><code>        $res-&gt;set_random_initial_uuid();</code></pre>
+
+<p>Generate a random UUID that can be used for skipping the initial sync.</p>
+
+<h2 id="set_initial_uuid-uuid">set_initial_uuid($uuid)</h2>
+
+<pre><code>        $res-&gt;set_initial_uuid();</code></pre>
+
+<p>Set a UUID that can be used for skipping the initial sync.</p>
+
+<h2 id="get_initial_uuid">get_initial_uuid()</h2>
+
+<pre><code>        $res-&gt;get_initial_uuid();</code></pre>
+
+<p>Get the stored UUID that can be used for skipping the initial sync.</p>
+
+<h2 id="delete_initial_uuid">delete_initial_uuid()</h2>
+
+<pre><code>        $res-&gt;delete_initial_uuid();</code></pre>
+
+<p>Delete the stored initial UUID that can be used for skipping the initial sync.</p>
+
 <h2 id="write_resource_file">write_resource_file()</h2>
 
 <pre><code>        $res-&gt;write_resource_file(&#39;/etc/drbd.d/r1.res&#39;);</code></pre>
@@ -235,15 +264,15 @@
 
 <p>Calls <code>drbdadm secondary $resname</code></p>
 
-<h3 id="create_md">create_md()</h3>
+<h3 id="create_md-volid-gid-up2date">create_md($volid, [$gid, [$up2date]])</h3>
 
-<pre><code>        $res-&gt;create_md();</code></pre>
+<pre><code>        $res-&gt;create_md(0);</code></pre>
 
-<p>Calls <code>drbdadm create-md --force $resname</code></p>
+<p>Calls <code>drbdadm create-md --force $resname/$volid</code>. If a $gid is given, it is set via <code>drbdadm set-gi</code>. $up2date is only used if a $gid is given and it&#39;s default is true/1.</p>
 
 <h3 id="initial_sync">initial_sync()</h3>
 
-<pre><code>        $res-&gt;create_md();</code></pre>
+<pre><code>        $res-&gt;initial_sync();</code></pre>
 
 <p>Starts an initial sync by calling <code>drbdadm primary --force $resname</code></p>
 
@@ -281,7 +310,7 @@
         $r-&gt;set_net_option(&#39;allow-two-primaries&#39;, &#39;yes&#39;);
         
         $r-&gt;write_resource_file(); # implicit to /etc/drbd.d/rck.res
-        $r-&gt;create_md();
+        $r-&gt;create_md(0);
         $r-&gt;up();
         # on one node one would call $r-&gt;initial_sync();</code></pre>
 
@@ -309,6 +338,25 @@
         # in order to modify an object one has to get a handle first
         # this can be done via the get_ methods
         $r2-&gt;get_node(&#39;alpha&#39;)-&gt;set_address(&#39;1.1.1.3&#39;);</code></pre>
+
+<h2 id="Skipping-the-initial-sync">Skipping the initial sync</h2>
+
+<p>If one uses backing devices that guarantee that they read 0s, or where the backing devices are zeroed locally by other means, it makes sense to skip the initial sync. This needs a shared initial DRBD generation ID from where then the actual sync starts. With the library one can do that like this:</p>
+
+<pre><code>        # # first node:
+        # setup the resource as usual and then do:
+        $r-&gt;set_random_initial_uuid();
+        $r-&gt;write_resource_file();
+        $r-&gt;store(&#39;/path/res.db&#39;);
+        $r-&gt;create_md($volid, $r-&gt;get_initial_uuid());
+        $r-&gt;up();
+        $r-&gt;initial_sync();
+        
+        # # other nodes (after copying the stored file)
+        my $r = retrieve(&#39;/path/res.db&#39;);
+        $r-&gt;write_resource_file();
+        $r-&gt;create_md($volid, $r-&gt;get_initial_uuid());
+        $r-&gt;up();</code></pre>
 
 
 </body>
