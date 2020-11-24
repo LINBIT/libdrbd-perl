@@ -329,11 +329,11 @@
 
 <pre><code>        use Storable;
         my $r = LINBIT::DRBD::Resource-&gt;new(&quot;rck&quot;); # and more
-        $r-&gt;set_comment(&#39;initial-uuid&#39;, &#39;ffff888056ff5897::::1:1&#39;);
+        $r-&gt;set_comment(&#39;my-info&#39;, &#39;very important&#39;);
         $r-&gt;store(&#39;/etc/drbd.d/rck.res.dump&#39;);
         # later...
         my $r2 = retrieve(&#39;/etc/drbd.d/rck.res.dump&#39;);
-        print $r2-&gt;get_comment(&#39;initial-uuid&#39;);
+        print $r2-&gt;get_comment(&#39;my-info&#39;);
         
         # in order to modify an object one has to get a handle first
         # this can be done via the get_ methods

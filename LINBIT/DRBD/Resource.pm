@@ -789,11 +789,11 @@ In order to extend a resource at a later point in time, one has to serialize its
 
 	use Storable;
 	my $r = LINBIT::DRBD::Resource->new("rck"); # and more
-	$r->set_comment('initial-uuid', 'ffff888056ff5897::::1:1');
+	$r->set_comment('my-info', 'very important');
 	$r->store('/etc/drbd.d/rck.res.dump');
 	# later...
 	my $r2 = retrieve('/etc/drbd.d/rck.res.dump');
-	print $r2->get_comment('initial-uuid');
+	print $r2->get_comment('my-info');
 	
 	# in order to modify an object one has to get a handle first
 	# this can be done via the get_ methods
