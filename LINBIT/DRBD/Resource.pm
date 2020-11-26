@@ -23,6 +23,7 @@ use warnings;
 use JSON::XS qw( decode_json );
 use Carp qw( confess );
 use File::Spec;
+use File::Copy;
 use Data::UUID;
 
 # should be: use parent "Storable"; but we need to support very old perl
@@ -384,11 +385,13 @@ sub write_resource_file {
     $path = $self->{name} if not defined($path);
     $path = _get_file_path($path);
 
+    my $tmppath = $path . ".tmp";
+
     if ( $path eq "-" ) {
         $self->{fh} = *STDOUT;
     }
     else {
-        open( $self->{fh}, '>', $path ) or die "Can't open ${path}: $!";
+        open( $self->{fh}, '>', $tmppath ) or die "Can't open ${tmppath}: $!";
     }
 
     $self->{indent} = 0;
@@ -415,12 +418,13 @@ sub write_resource_file {
 
     $self->_pi("}\n");
 
-    # TODO:
-    # write to .tmp and mv
-    # check if res file is valid
     if ( $path ne "-" ) {
         close( $self->{fh} );
-        delete( $self->{fh} );
+        delete( $self->{fh} );    # otherwise we can not store() the object
+
+        $self->_drbdadm( '--config-to-test', $tmppath, '--config-to-exclude',
+            $path, "sh-nop" );
+        move( $tmppath, $path ) or die "Move ($tmppath -> $path) failed: $!";
     }
 
     return $self;
@@ -695,6 +699,10 @@ Delete the stored initial UUID that can be used for skipping the initial sync.
 	$res->write_resource_file('/etc/drbd.d/r1.res');
 
 Writes a resource file. If a path is given, the resource file gets written to that path. If '-' is given, the resource file is printed to C<STDOUT>, and if the parameter is not defined, F</etc/drbd.d/${resname}.res> is used.
+
+The resource file, if not written to STDOUT, first gets generated to a C<.tmp> file, which gets tested for validity by calling C<drbdadm>. If the resource file is valid, it gets moved to its final name (without the C<.tmp> postfix).
+
+This method might call C<die()>.
 
 =head2 DRBD Commands
 

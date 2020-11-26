@@ -236,6 +236,10 @@
 
 <p>Writes a resource file. If a path is given, the resource file gets written to that path. If &#39;-&#39; is given, the resource file is printed to <code>STDOUT</code>, and if the parameter is not defined, <i>/etc/drbd.d/${resname}.res</i> is used.</p>
 
+<p>The resource file, if not written to STDOUT, first gets generated to a <code>.tmp</code> file, which gets tested for validity by calling <code>drbdadm</code>. If the resource file is valid, it gets moved to its final name (without the <code>.tmp</code> postfix).</p>
+
+<p>This method might call <code>die()</code>.</p>
+
 <h2 id="DRBD-Commands">DRBD Commands</h2>
 
 <p>These commands are almost directly mapped to the according <code>drbdadm</code> or <code>drbdsetup</code> commands. In case of an error, commands in this section call <code>die()</code>.</p>
