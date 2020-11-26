@@ -498,6 +498,7 @@ sub initial_sync {
     my $self = shift;
 
     $self->_drbdadm( "primary", "--force" );
+    $self->_drbdadm( "secondary" );
 }
 
 sub create_md {
