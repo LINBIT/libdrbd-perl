@@ -430,29 +430,38 @@ sub write_resource_file {
     return $self;
 }
 
-sub __drbdadm {
+sub _run_command {
     my $self = shift;
-    my @cmd  = @_;
+    my $cmd  = shift;
+    my @args = @_;
 
-    system( "drbdadm", @cmd ) == 0
-      or die "Could not execute drbdadm @{cmd}: $!";
+    system( $cmd, @args ) == 0
+      or die "Could not successfully execute $cmd @{args}: $!";
 }
 
 sub _drbdadm {
     my $self = shift;
-    my @cmd  = @_;
+    my @args = @_;
 
-    push( @cmd, "$self->{name}" );
-    return $self->__drbdadm(@cmd);
+    push( @args, "$self->{name}" );
+    return $self->_run_command( "drbdadm", @args );
+}
+
+sub _drbdsetup {
+    my $self = shift;
+    my @args = @_;
+
+    push( @args, "$self->{name}" );
+    return $self->_run_command( "drbdsetup", @args );
 }
 
 sub _drbdadm_volume {
     my $self   = shift;
     my $volume = shift;
-    my @cmd    = @_;
+    my @args   = @_;
 
-    push( @cmd, "$self->{name}/$volume" );
-    return $self->__drbdadm(@cmd);
+    push( @args, "$self->{name}/$volume" );
+    return $self->_run_command( "drbdadm", @args );
 }
 
 sub adjust {
@@ -523,6 +532,22 @@ sub status {
     confess $@ if $@;
 
     return @$status[0];
+}
+
+sub wait_for_usable {
+    my ( $self, $timeout ) = @_;
+
+    $timeout = 30 if not defined $timeout;
+
+    eval { $self->_drbdsetup( 'wait-connect-resource', '--wfc-timeout', 30 ); };
+    if ($@) {
+        warn $@;
+        open( my $fh, '-|', 'drbdadm', 'dstate', $self->{name} ) or die $!;
+        while ( my $line = <$fh> ) {
+            die "wait-connect-resource failed AND none UpToDate"
+              if ( $line !~ m/UpToDate/ );
+        }
+    }
 }
 
 1;
@@ -703,6 +728,14 @@ Writes a resource file. If a path is given, the resource file gets written to th
 The resource file, if not written to STDOUT, first gets generated to a C<.tmp> file, which gets tested for validity by calling C<drbdadm>. If the resource file is valid, it gets moved to its final name (without the C<.tmp> postfix).
 
 This method might call C<die()>.
+
+=head2 wait_for_usable([timeout])
+
+	$res->wait_for_usable(30);
+
+We often see that users think that as soon as the device is created, the resource is also usable, which is wrong. This method waits the given amount of seconds (default is 30 seconds). If the resource is not usable within this timeout the method calls C<die()>.
+
+Most likely one wants to call it after an C<initial_sync()> on the initiator node, or after an C<up> on the other nodes.
 
 =head2 DRBD Commands
 

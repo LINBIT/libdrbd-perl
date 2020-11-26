@@ -42,6 +42,7 @@
       <li><a href="#get_initial_uuid">get_initial_uuid()</a></li>
       <li><a href="#delete_initial_uuid">delete_initial_uuid()</a></li>
       <li><a href="#write_resource_file">write_resource_file()</a></li>
+      <li><a href="#wait_for_usable-timeout">wait_for_usable([timeout])</a></li>
       <li><a href="#DRBD-Commands">DRBD Commands</a>
         <ul>
           <li><a href="#up">up()</a></li>
@@ -239,6 +240,14 @@
 <p>The resource file, if not written to STDOUT, first gets generated to a <code>.tmp</code> file, which gets tested for validity by calling <code>drbdadm</code>. If the resource file is valid, it gets moved to its final name (without the <code>.tmp</code> postfix).</p>
 
 <p>This method might call <code>die()</code>.</p>
+
+<h2 id="wait_for_usable-timeout">wait_for_usable([timeout])</h2>
+
+<pre><code>        $res-&gt;wait_for_usable(30);</code></pre>
+
+<p>We often see that users think that as soon as the device is created, the resource is also usable, which is wrong. This method waits the given amount of seconds (default is 30 seconds). If the resource is not usable within this timeout the method calls <code>die()</code>.</p>
+
+<p>Most likely one wants to call it after an <code>initial_sync()</code> on the initiator node, or after an <code>up</code> on the other nodes.</p>
 
 <h2 id="DRBD-Commands">DRBD Commands</h2>
 
