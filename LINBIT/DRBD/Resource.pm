@@ -560,8 +560,9 @@ sub create_md {
 sub status {
     my $self = shift;
 
+    $self->_drbdsetup( 'status', '--json' );
     my $status;
-    eval { $status = decode_json(`drbdsetup status --json $self->{name}`); };
+    eval { $status = decode_json( $self->{cmd_stdout} ); };
     confess $@ if $@;
 
     return @$status[0];
