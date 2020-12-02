@@ -52,6 +52,8 @@
           <li><a href="#create_md-volid-gid-up2date">create_md($volid, [$gid, [$up2date]])</a></li>
           <li><a href="#initial_sync">initial_sync()</a></li>
           <li><a href="#status">status()</a></li>
+          <li><a href="#get_cmd_stdout">get_cmd_stdout()</a></li>
+          <li><a href="#get_cmd_stderr">get_cmd_stderr()</a></li>
         </ul>
       </li>
     </ul>
@@ -253,6 +255,8 @@
 
 <p>These commands are almost directly mapped to the according <code>drbdadm</code> or <code>drbdsetup</code> commands. In case of an error, commands in this section call <code>die()</code>.</p>
 
+<p>The stdout and stderr outputs are stored internally and be retrieved via <code>get_cmd_stdout</code> and <code>get_cmd_stderr</code>. These bufferes set to the the empty string before serialization with <code>Storable</code>.</p>
+
 <h3 id="up">up()</h3>
 
 <pre><code>        $res-&gt;up();</code></pre>
@@ -294,6 +298,18 @@
 <pre><code>        $res-&gt;status();</code></pre>
 
 <p>Calls <code>drbdsetup status --json $resname</code> and return the hash matching this resource.</p>
+
+<h3 id="get_cmd_stdout">get_cmd_stdout()</h3>
+
+<pre><code>        print $res-&gt;get_cmd_stdout();</code></pre>
+
+<p>Get the stdout of the last external command.</p>
+
+<h3 id="get_cmd_stderr">get_cmd_stderr()</h3>
+
+<pre><code>        print $res-&gt;get_cmd_stderr();</code></pre>
+
+<p>Get the stderr of the last external command.</p>
 
 <h1 id="EXAMPLES">EXAMPLES</h1>
 
@@ -338,7 +354,7 @@
 
 <h2 id="Extend-an-existing-resource">Extend an existing resource</h2>
 
-<p>In order to extend a resource at a later point in time, one has to serialize its state.</p>
+<p>In order to extend a resource at a later point in time, one has to serialize its state. Note that on serialization internal buffers not required (or even dangerous because leeking information) are discarded. These are currently the buffers that store stdout/stderr of the last command.</p>
 
 <pre><code>        use Storable;
         my $r = LINBIT::DRBD::Resource-&gt;new(&quot;rck&quot;); # and more

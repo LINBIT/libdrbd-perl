@@ -25,6 +25,8 @@ use Carp qw( confess );
 use File::Spec;
 use File::Copy;
 use Data::UUID;
+use IPC::Open3;
+use IO::File;
 
 # should be: use parent "Storable"; but we need to support very old perl
 use Storable; our @ISA="Storable";
@@ -32,7 +34,17 @@ use Storable; our @ISA="Storable";
 sub new {
     my ( $class, $name ) = @_;
 
-    my $self = bless { name => $name, is_mesh => 1 }, $class;
+    my $self = bless { name => $name, is_mesh => 1, cmd_stdout => '', cmd_stderr => '' }, $class;
+}
+
+sub STORABLE_freeze {
+    my $self = shift;
+
+    $self->{cmd_stdout} = '';
+    $self->{cmd_stderr} = '';
+    delete( $self->{fh} );
+
+    return ();
 }
 
 sub _get_file_path {
@@ -435,8 +447,28 @@ sub _run_command {
     my $cmd  = shift;
     my @args = @_;
 
-    system( $cmd, @args ) == 0
-      or die "Could not successfully execute $cmd @{args}: $!";
+    # should be run IPC::Cmd; but again, very very old perl
+    my $in = '';
+    local *CATCHOUT = IO::File->new_tmpfile;
+    local *CATCHERR = IO::File->new_tmpfile;
+    my $pid        = open3( $in, ">&CATCHOUT", ">&CATCHERR", $cmd, @args );
+    my $waitstatus = waitpid( $pid, 0 );
+    my ( $rc, $sig, $core ) = ( $? >> 8, $? & 127, $? & 128 );
+
+    seek $_, 0, 0 for \*CATCHOUT, \*CATCHERR;
+    $self->{cmd_stdout} = do { local $/; <CATCHOUT> };
+    $self->{cmd_stderr} = do { local $/; <CATCHERR> };
+
+    die "could not wait for $cmd @{args}" unless $waitstatus > 0;
+    die "could not successfully execute $cmd @{args}" unless $rc == 0;
+}
+
+sub get_cmd_stdout {
+    return $_[0]->{cmd_stdout};
+}
+
+sub get_cmd_stderr {
+    return $_[0]->{cmd_stderr};
 }
 
 sub _drbdadm {
@@ -742,6 +774,8 @@ Most likely one wants to call it after an C<initial_sync()> on the initiator nod
 
 These commands are almost directly mapped to the according C<drbdadm> or C<drbdsetup> commands. In case of an error, commands in this section call C<die()>.
 
+The stdout and stderr outputs are stored internally and be retrieved via C<get_cmd_stdout> and C<get_cmd_stderr>. These bufferes set to the the empty string before serialization with C<Storable>.
+
 =head3 up()
 
 	$res->up();
@@ -783,6 +817,18 @@ Starts an initial sync by calling C<drbdadm primary --force $resname>
 	$res->status();
 
 Calls C<drbdsetup status --json $resname> and return the hash matching this resource.
+
+=head3 get_cmd_stdout()
+
+	print $res->get_cmd_stdout();
+
+Get the stdout of the last external command.
+
+=head3 get_cmd_stderr()
+
+	print $res->get_cmd_stderr();
+
+Get the stderr of the last external command.
 
 =head1 EXAMPLES
 
@@ -827,7 +873,7 @@ Calls C<drbdsetup status --json $resname> and return the hash matching this reso
 
 =head2 Extend an existing resource
 
-In order to extend a resource at a later point in time, one has to serialize its state.
+In order to extend a resource at a later point in time, one has to serialize its state. Note that on serialization internal buffers not required (or even dangerous because leeking information) are discarded. These are currently the buffers that store stdout/stderr of the last command.
 
 	use Storable;
 	my $r = LINBIT::DRBD::Resource->new("rck"); # and more
