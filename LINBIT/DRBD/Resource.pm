@@ -553,18 +553,18 @@ sub create_md {
         }
 
         if ( scalar @{ $self->{nodes} } == 1 ) {
+
             # workaround for drbdadm bug if there is only one node
             $self->_drbdadm_volume( $volume, 'sh-md-dev' );
             chomp( my $md_dev = $self->{cmd_stdout} );
-            my $internal = 'internal'
-              ; # we only get a volume ID here, but we don't know on which level the actual voluem is set; we have to guess;
-            $self->_run_command(
-                'drbdmeta',  '--force',
+
+            $self->_drbdadm_volume( $volume, 'sh-md-idx' );
+            chomp( my $md_idx = $self->{cmd_stdout} );
+            $md_idx = 'flex-external' unless $md_idx eq 'internal';
+
+            $self->_run_command( 'drbdmeta', '--force',
                 '--node-id', $self->{nodes}[0]->{id},
-                '2342',      'v09',
-                $md_dev,     $internal,
-                'set-gi',    "$gid"
-            );
+                '2342', 'v09', $md_dev, $md_idx, 'set-gi', "$gid" );
         }
         else {
             # yes, here the syntax is weird/reverse
