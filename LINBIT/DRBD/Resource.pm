@@ -34,7 +34,13 @@ use Storable; our @ISA="Storable";
 sub new {
     my ( $class, $name ) = @_;
 
-    my $self = bless { name => $name, is_mesh => 1, cmd_stdout => '', cmd_stderr => '' }, $class;
+    my $self = bless {
+        name       => $name,
+        is_mesh    => 1,
+        cmd_stdout => '',
+        cmd_stderr => '',
+        _debug     => 0
+    }, $class;
 }
 
 sub STORABLE_freeze {
@@ -266,7 +272,8 @@ sub delete_initial_uuid {
 sub _pi {
     my $self = shift;
     my $fh   = $self->{fh};
-    print $fh "    " x $self->{indent}, @_;
+    print $fh    "    " x $self->{indent}, @_;
+    print STDERR "    " x $self->{indent}, @_ if $self->{_debug};
 }
 
 # strict is used for "real volumes", where non strict is used if we are only interested in the disk options.
@@ -447,6 +454,8 @@ sub _run_command {
     my $cmd  = shift;
     my @args = @_;
 
+    print STDERR "\n--- Executing: $cmd @args\n" if $self->{_debug};
+
     # should be run IPC::Cmd; but again, very very old perl
     my $in = '';
     local *CATCHOUT = IO::File->new_tmpfile;
@@ -458,6 +467,13 @@ sub _run_command {
     seek $_, 0, 0 for \*CATCHOUT, \*CATCHERR;
     $self->{cmd_stdout} = do { local $/; <CATCHOUT> };
     $self->{cmd_stderr} = do { local $/; <CATCHERR> };
+
+    if ( $self->{_debug} > 1 ) {
+        printf STDERR "| STDOUT: %s\n", $self->{cmd_stdout}
+          if $self->{cmd_stdout} ne '';
+        printf STDERR "| STDERR: %s\n", $self->{cmd_stderr}
+          if $self->{cmd_stderr} ne '';
+    }
 
     die "could not wait for $cmd @{args}" unless $waitstatus > 0;
     die "could not successfully execute $cmd @{args}" unless $rc == 0;
