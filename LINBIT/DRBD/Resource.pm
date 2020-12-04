@@ -605,7 +605,7 @@ sub wait_for_usable {
 
     $timeout = 30 if not defined $timeout;
 
-    eval { $self->_drbdsetup( 'wait-connect-resource', '--wfc-timeout', 30 ); };
+    eval { $self->_drbdsetup( 'wait-connect-resource', '--wfc-timeout', $timeout ); };
     if ($@) {
         warn $@;
         open( my $fh, '-|', 'drbdadm', 'dstate', $self->{name} ) or die $!;
