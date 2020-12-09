@@ -542,6 +542,24 @@ sub secondary {
     $self->_drbdadm("secondary");
 }
 
+sub verify {
+    my $self = shift;
+
+    $self->_drbdadm("verify");
+}
+
+sub connect {
+    my $self = shift;
+
+    $self->_drbdadm( "connect", @_ );
+}
+
+sub disconnect {
+    my $self = shift;
+
+    $self->_drbdadm( "disconnect", @_ );
+}
+
 sub initial_sync {
     my $self = shift;
 
@@ -844,6 +862,23 @@ Calls C<drbdadm create-md --force $resname/$volid>. If a $gid is given, it is se
 	$res->initial_sync();
 
 Starts an initial sync by calling C<drbdadm primary --force $resname>
+
+=head3 connect()
+	$res->connect();
+	$res->connect("--discard-my-data");
+
+Connects a resource calling C<drbdadm connect [args,...] $resname>
+
+=head3 disconnect()
+	$res->disconnect();
+	$res->disconnect("--force");
+
+Disconnects a resource calling C<drbdadm disconnect [args,...] $resname>
+
+=head3 verify()
+	$res->verify();
+
+Starts a verify process calling C<drbdadm verify $resname>
 
 =head3 status()
 

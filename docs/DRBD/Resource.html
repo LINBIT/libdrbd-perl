@@ -51,6 +51,9 @@
           <li><a href="#secondary">secondary()</a></li>
           <li><a href="#create_md-volid-gid-up2date">create_md($volid, [$gid, [$up2date]])</a></li>
           <li><a href="#initial_sync">initial_sync()</a></li>
+          <li><a href="#connect-res-connect-res-connect---discard-my-data">connect() $res-&gt;connect(); $res-&gt;connect(&quot;--discard-my-data&quot;);</a></li>
+          <li><a href="#disconnect-res-disconnect-res-disconnect---force">disconnect() $res-&gt;disconnect(); $res-&gt;disconnect(&quot;--force&quot;);</a></li>
+          <li><a href="#verify-res-verify">verify() $res-&gt;verify();</a></li>
           <li><a href="#status">status()</a></li>
           <li><a href="#get_cmd_stdout">get_cmd_stdout()</a></li>
           <li><a href="#get_cmd_stderr">get_cmd_stderr()</a></li>
@@ -292,6 +295,18 @@
 <pre><code>        $res-&gt;initial_sync();</code></pre>
 
 <p>Starts an initial sync by calling <code>drbdadm primary --force $resname</code></p>
+
+<h3 id="connect-res-connect-res-connect---discard-my-data">connect() $res-&gt;connect(); $res-&gt;connect(&quot;--discard-my-data&quot;);</h3>
+
+<p>Connects a resource calling <code>drbdadm connect [args,...] $resname</code></p>
+
+<h3 id="disconnect-res-disconnect-res-disconnect---force">disconnect() $res-&gt;disconnect(); $res-&gt;disconnect(&quot;--force&quot;);</h3>
+
+<p>Disconnects a resource calling <code>drbdadm disconnect [args,...] $resname</code></p>
+
+<h3 id="verify-res-verify">verify() $res-&gt;verify();</h3>
+
+<p>Starts a verify process calling <code>drbdadm verify $resname</code></p>
 
 <h3 id="status">status()</h3>
 
