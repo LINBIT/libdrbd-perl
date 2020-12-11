@@ -22,11 +22,15 @@ use warnings;
 
 use JSON::XS qw( decode_json );
 use Carp qw( confess );
+use File::Temp qw( tempfile );
+use POSIX qw( uname );
 use File::Spec;
 use File::Copy;
 use Data::UUID;
 use IPC::Open3;
 use IO::File;
+
+use LINBIT::DRBD::Node;
 
 # should be: use parent "Storable"; but we need to support very old perl
 use Storable; our @ISA="Storable";
@@ -217,6 +221,14 @@ sub delete_options_option {
     return _delete_option (@_, "options_options");
 }
 
+sub set_handlers_option {
+    return _set_option (@_, "handlers_options");
+}
+
+sub delete_handlers_option {
+    return _delete_option (@_, "handlers_options");
+}
+
 sub set_comment {
     # key with out a value, "plain comment"
     if ( scalar @_ == 2 ) {
@@ -348,6 +360,7 @@ sub _write_connections {
     my $self = shift;
 
     if ( $self->{is_mesh} ) {
+        return unless @{$self->{nodes}} > 0;
         my $hosts = join " ",
           ( my @hosts = map { $_->{name} } @{ $self->{nodes} } );
 
@@ -381,7 +394,7 @@ sub _write_options_section {
 sub _write_options {
     my $self = shift;
 
-    for my $section ( "net", "disk", "options" ) {
+    for my $section ( "net", "disk", "options", "handlers" ) {
         my $opt_dict = $self->{"${section}_options"};
         $self->_write_options_section( $opt_dict, $section );
     }
@@ -398,8 +411,8 @@ sub _write_comments {
     }
 }
 
-sub write_resource_file {
-    my ( $self, $path ) = @_;
+sub _write_resource_file {
+    my ( $self, $test_config, $path ) = @_;
 
     $path = $self->{name} if not defined($path);
     $path = _get_file_path($path);
@@ -442,11 +455,16 @@ sub write_resource_file {
         delete( $self->{fh} );    # otherwise we can not store() the object
 
         $self->_drbdadm( '--config-to-test', $tmppath, '--config-to-exclude',
-            $path, "sh-nop" );
+            $path, "sh-nop" ) if $test_config;
         move( $tmppath, $path ) or die "Move ($tmppath -> $path) failed: $!";
     }
 
     return $self;
+}
+
+sub write_resource_file {
+    my $self = shift;
+    return $self->_write_resource_file( 1, @_ );
 }
 
 sub _run_command {
@@ -634,6 +652,118 @@ sub wait_for_usable {
     }
 }
 
+sub validate_drbd_option {
+    my ( $class, $k, $v ) = @_;
+
+    my %drbd_opts = (
+        'after-resync-target'       => 'handlers',
+        'after-sb-0pri'             => 'net',
+        'after-sb-1pri'             => 'net',
+        'after-sb-2pri'             => 'net',
+        'al-extents'                => 'disk',
+        'al-updates'                => 'disk',
+        'allow-remote-read'         => 'net',
+        'allow-two-primaries'       => 'net',
+        'always-asbp'               => 'net',
+        'auto-promote'              => 'options',
+        'auto-promote-timeout'      => 'options',
+        'before-resync-source'      => 'handlers',
+        'before-resync-target'      => 'handlers',
+        'bitmap'                    => 'disk',
+        'c-delay-target'            => 'disk',
+        'c-fill-target'             => 'disk',
+        'c-max-rate'                => 'disk',
+        'c-min-rate'                => 'disk',
+        'c-plan-ahead'              => 'disk',
+        'congestion-extents'        => 'net',
+        'congestion-fill'           => 'net',
+        'connect-int'               => 'net',
+        'cpu-mask'                  => 'options',
+        'cram-hmac-alg'             => 'net',
+        'csums-after-crash-only'    => 'net',
+        'csums-alg'                 => 'net',
+        'data-integrity-alg'        => 'net',
+        'disable-write-same'        => 'disk',
+        'discard-zeroes-if-aligned' => 'disk',
+        'disk-barrier'              => 'disk',
+        'disk-drain'                => 'disk',
+        'disk-flushes'              => 'disk',
+        'disk-timeout'              => 'disk',
+        'fence-peer'                => 'handlers',
+        'fencing'                   => 'net',
+        'initial-split-brain'       => 'handlers',
+        'ko-count'                  => 'net',
+        'local-io-error'            => 'handlers',
+        'max-buffers'               => 'net',
+        'max-epoch-size'            => 'net',
+        'max-io-depth'              => 'options',
+        'md-flushes'                => 'disk',
+        'on-congestion'             => 'net',
+        'on-io-error'               => 'disk',
+        'on-no-data-accessible'     => 'options',
+        'on-no-quorum'              => 'options',
+        'out-of-sync'               => 'handlers',
+        'peer-ack-delay'            => 'options',
+        'peer-ack-window'           => 'options',
+        'ping-int'                  => 'net',
+        'ping-timeout'              => 'net',
+        'pri-lost'                  => 'handlers',
+        'pri-lost-after-sb'         => 'handlers',
+        'pri-on-incon-degr'         => 'handlers',
+        'protocol'                  => 'net',
+        'quorum'                    => 'options',
+        'quorum-lost'               => 'handlers',
+        'quorum-minimum-redundancy' => 'options',
+        'rcvbuf-size'               => 'net',
+        'read-balancing'            => 'disk',
+        'resync-after'              => 'disk',
+        'resync-rate'               => 'disk',
+        'rr-conflict'               => 'net',
+        'rs-discard-granularity'    => 'disk',
+        'shared-secret'             => 'net',
+        'sndbuf-size'               => 'net',
+        'socket-check-timeout'      => 'net',
+        'split-brain'               => 'handlers',
+        'tcp-cork'                  => 'net',
+        'timeout'                   => 'net',
+        'transport'                 => 'net',
+        'twopc-retry-timeout'       => 'options',
+        'twopc-timeout'             => 'options',
+        'unfence-peer'              => 'handlers',
+        'use-rle'                   => 'net',
+        'verify-alg'                => 'net',
+    );
+
+    die "Option '$k' is not a valid drbd option" unless exists $drbd_opts{$k};
+
+    my $section = $drbd_opts{$k};
+    return $section unless defined $v;
+
+    # need to check value via res file
+    my $r = $class->new('libdrbdperl');
+    my ( undef, $nodename ) = uname();
+    my $n0 = LINBIT::DRBD::Node->new( $nodename, 0 )->set_address('1.2.3.4')
+      ->set_port(1234);
+    $r->add_node($n0);
+
+    $r->set_net_option( $k, $v )      if ( $section eq 'net' );
+    $r->set_disk_option( $k, $v )     if ( $section eq 'disk' );
+    $r->set_options_option( $k, $v )  if ( $section eq 'options' );
+    $r->set_handlers_option( $k, $v ) if ( $section eq 'handlers' );
+
+    my ( undef, $tmppath ) = tempfile( OPEN => 0 );
+    $r->_write_resource_file( 0, $tmppath );
+    eval { $r->_drbdadm( '-c', $tmppath, "sh-nop" ); };
+    my $failed = $@;
+    unlink $tmppath;
+    if ($failed) {
+        my $how = $r->get_cmd_stderr();
+        die "Option '$k' has an invalid value: ${how}";
+    }
+
+    return $section;
+}
+
 1;
 __END__
 
@@ -654,6 +784,20 @@ Methods return the object itself, which allows for:
 =head1 VERSION
 
 0.0.0
+
+=head1 CLASS METHODS
+
+=head2 validate_drbd_option()
+
+	my $section = LINBIT::DRBD::Resource->validate_drbd_option('allow-two-primaries');
+	my $section = LINBIT::DRBD::Resource->validate_drbd_option('allow-two-primaries', 'yes');
+
+This command takes a key like "allow-two-primaries" in the above example and checks if it is a valid option.
+If it is valid, it returns the DRBD section that key. In the example it would return "net".
+
+If validation (key or value) fails, this calls C<die()>.
+
+If a value is passed, a temporary fake res file is generated with the given option and its value, and C<drbdadm> is exected on that file to check that option.
 
 =head1 METHODS
 
@@ -758,6 +902,18 @@ Sets an option in the options-section of the resource file.
 	$res->delete_options_option('key');
 
 Delete an option in the options-section of the resource file.
+
+=head2 set_handlers_option()
+
+	$res->set_handlers_option('key', 'value');
+
+Sets a hanlder in the handlers-section of the resource file.
+
+=head2 delete_handlers_option()
+
+	$res->delete_handlers_option('key');
+
+Delete an option in the handlers-section of the resource file.
 
 =head2 set_comment('key', ['value'])
 

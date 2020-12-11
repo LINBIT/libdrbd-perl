@@ -15,6 +15,11 @@
   <li><a href="#NAME">NAME</a></li>
   <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
   <li><a href="#VERSION">VERSION</a></li>
+  <li><a href="#CLASS-METHODS">CLASS METHODS</a>
+    <ul>
+      <li><a href="#validate_drbd_option">validate_drbd_option()</a></li>
+    </ul>
+  </li>
   <li><a href="#METHODS">METHODS</a>
     <ul>
       <li><a href="#new">new()</a></li>
@@ -34,6 +39,8 @@
       <li><a href="#delete_disk_option">delete_disk_option()</a></li>
       <li><a href="#set_options_option">set_options_option()</a></li>
       <li><a href="#delete_options_option">delete_options_option()</a></li>
+      <li><a href="#set_handlers_option">set_handlers_option()</a></li>
+      <li><a href="#delete_handlers_option">delete_handlers_option()</a></li>
       <li><a href="#set_comment-key-value">set_comment(&#39;key&#39;, [&#39;value&#39;])</a></li>
       <li><a href="#get_comment-key">get_comment(&#39;key&#39;)</a></li>
       <li><a href="#delete_comment-key">delete_comment(&#39;key&#39;)</a></li>
@@ -88,6 +95,19 @@
 <h1 id="VERSION">VERSION</h1>
 
 <p>0.0.0</p>
+
+<h1 id="CLASS-METHODS">CLASS METHODS</h1>
+
+<h2 id="validate_drbd_option">validate_drbd_option()</h2>
+
+<pre><code>        my $section = LINBIT::DRBD::Resource-&gt;validate_drbd_option(&#39;allow-two-primaries&#39;);
+        my $section = LINBIT::DRBD::Resource-&gt;validate_drbd_option(&#39;allow-two-primaries&#39;, &#39;yes&#39;);</code></pre>
+
+<p>This command takes a key like &quot;allow-two-primaries&quot; in the above example and checks if it is a valid option. If it is valid, it returns the DRBD section that key. In the example it would return &quot;net&quot;.</p>
+
+<p>If validation (key or value) fails, this calls <code>die()</code>.</p>
+
+<p>If a value is passed, a temporary fake res file is generated with the given option and its value, and <code>drbdadm</code> is exected on that file to check that option.</p>
 
 <h1 id="METHODS">METHODS</h1>
 
@@ -192,6 +212,18 @@
 <pre><code>        $res-&gt;delete_options_option(&#39;key&#39;);</code></pre>
 
 <p>Delete an option in the options-section of the resource file.</p>
+
+<h2 id="set_handlers_option">set_handlers_option()</h2>
+
+<pre><code>        $res-&gt;set_handlers_option(&#39;key&#39;, &#39;value&#39;);</code></pre>
+
+<p>Sets a hanlder in the handlers-section of the resource file.</p>
+
+<h2 id="delete_handlers_option">delete_handlers_option()</h2>
+
+<pre><code>        $res-&gt;delete_handlers_option(&#39;key&#39;);</code></pre>
+
+<p>Delete an option in the handlers-section of the resource file.</p>
 
 <h2 id="set_comment-key-value">set_comment(&#39;key&#39;, [&#39;value&#39;])</h2>
 
