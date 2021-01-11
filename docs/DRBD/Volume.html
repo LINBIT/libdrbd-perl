@@ -19,9 +19,12 @@
       <li><a href="#new-id">new($id)</a></li>
       <li><a href="#set_disk-blockdev">set_disk($blockdev)</a></li>
       <li><a href="#set_diskless">set_diskless()</a></li>
+      <li><a href="#get_disk">get_disk()</a></li>
       <li><a href="#set_internal_metadata">set_internal_metadata()</a></li>
       <li><a href="#set_external_metadata-blockdev">set_external_metadata($blockdev)</a></li>
+      <li><a href="#get_metadata_disk">get_metadata_disk()</a></li>
       <li><a href="#set_minor-minor_number">set_minor($minor_number)</a></li>
+      <li><a href="#get_minor">get_minor()</a></li>
       <li><a href="#set_minor-minor_number1">set_minor($minor_number)</a></li>
       <li><a href="#set_disk_option">set_disk_option()</a></li>
       <li><a href="#delte_disk_option">delte_disk_option()</a></li>
@@ -63,6 +66,12 @@
 
 <p>Set the DRBD backing device to &quot;none&quot; (i.e., diskless).</p>
 
+<h2 id="get_disk">get_disk()</h2>
+
+<pre><code>        $disk = $vol-&gt;get_disk();</code></pre>
+
+<p>Gets the DRBD backing device block device path, or &quot;none&quot;.</p>
+
 <h2 id="set_internal_metadata">set_internal_metadata()</h2>
 
 <pre><code>        $vol-&gt;set_internal_metadata();</code></pre>
@@ -75,11 +84,23 @@
 
 <p>Set the DRBD backing device to contain external DRBD meta-data at the specified block device.</p>
 
+<h2 id="get_metadata_disk">get_metadata_disk()</h2>
+
+<pre><code>        $meta_data_disk = $vol-&gt;get_metadata_disk();</code></pre>
+
+<p>Gets the DRBD meta-data block device path, or &quot;internal&quot;.</p>
+
 <h2 id="set_minor-minor_number">set_minor($minor_number)</h2>
 
 <pre><code>        $vol-&gt;set_minor(1000);</code></pre>
 
 <p>Set the DRBD volume&#39;s block device minor number.</p>
+
+<h2 id="get_minor">get_minor()</h2>
+
+<pre><code>        $minor_nr = $vol-&gt;get_minor();</code></pre>
+
+<p>Get the DRBD volume&#39;s minor number.</p>
 
 <h2 id="set_minor-minor_number1">set_minor($minor_number)</h2>
 

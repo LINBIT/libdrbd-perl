@@ -33,6 +33,12 @@ sub set_disk {
     return $self;
 }
 
+sub get_disk {
+    my $self = shift;
+
+    return $self->{disk};
+}
+
 sub set_diskless {
     my $self = shift;
 
@@ -57,12 +63,24 @@ sub set_external_metadata {
     return $self;
 }
 
+sub get_metadata_disk {
+    my $self = shift;
+
+    return $self->{meta_data};
+}
+
 sub set_minor {
     my ( $self, $minor ) = @_;
 
     $self->{minor} = $minor;
 
     return $self;
+}
+
+sub get_minor {
+    my $self = shift;
+
+    return $self->{minor};
 }
 
 sub _set_option {
@@ -128,6 +146,12 @@ Set the DRBD backing device.
 
 Set the DRBD backing device to "none" (i.e., diskless).
 
+=head2 get_disk()
+
+	$disk = $vol->get_disk();
+
+Gets the DRBD backing device block device path, or "none".
+
 =head2 set_internal_metadata()
 
 	$vol->set_internal_metadata();
@@ -140,11 +164,23 @@ Set the DRBD backing device to contain internal DRBD meta-data.
 
 Set the DRBD backing device to contain external DRBD meta-data at the specified block device.
 
+=head2 get_metadata_disk()
+
+	$meta_data_disk = $vol->get_metadata_disk();
+
+Gets the DRBD meta-data block device path, or "internal".
+
 =head2 set_minor($minor_number)
 
 	$vol->set_minor(1000);
 
 Set the DRBD volume's block device minor number.
+
+=head2 get_minor()
+
+	$minor_nr = $vol->get_minor();
+
+Get the DRBD volume's minor number.
 
 =head2 set_minor($minor_number)
 
