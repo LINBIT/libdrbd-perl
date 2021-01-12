@@ -530,10 +530,24 @@ sub _drbdadm_volume {
     return $self->_run_command( "drbdadm", @args );
 }
 
+sub _drbdadm_node {
+    my $self = shift;
+    my $node = shift;
+    my @args = @_;
+
+    push( @args, "$self->{name}:${node}" );
+    return $self->_run_command( "drbdadm", @args );
+}
+
 sub adjust {
     my $self = shift;
 
-    $self->_drbdadm("adjust");
+    $self->_drbdadm_maybe_node( "adjust", @_ );
+}
+
+sub resume {
+    my $self = shift;
+    return $self->adjust(@_);
 }
 
 sub up {
@@ -566,16 +580,42 @@ sub verify {
     $self->_drbdadm("verify");
 }
 
+sub begins_with {
+    return 0 if not defined $_[0];
+    return substr( $_[0], 0, length( $_[1] ) ) eq $_[1];
+}
+
+sub _get_node_args {
+    return undef, @_ if begins_with( $_[0], "-" );    # already an option
+    return @_;                                        # receiver splits it into $node, @args
+}
+
+sub _drbdadm_maybe_node {
+    my $self = shift;
+    my $cmd  = shift;
+    my ( $node, @args ) = _get_node_args(@_);
+
+    if ( defined $node ) {
+        return $self->_drbdadm_node( $node, $cmd, @args );
+    }
+    return $self->_drbdadm( $cmd, @args );
+}
+
 sub connect {
     my $self = shift;
 
-    $self->_drbdadm( "connect", @_ );
+    $self->_drbdadm_maybe_node( "connect", @_ );
 }
 
 sub disconnect {
     my $self = shift;
 
-    $self->_drbdadm( "disconnect", @_ );
+    $self->_drbdadm_maybe_node( "disconnect", @_ );
+}
+
+sub pause {
+    my $self = shift;
+    return $self->disconnect(@_);
 }
 
 sub initial_sync {
@@ -1019,17 +1059,41 @@ Calls C<drbdadm create-md --force $resname/$volid>. If a $gid is given, it is se
 
 Starts an initial sync by calling C<drbdadm primary --force $resname>
 
+=head3 adjust()
+	$res->adjust();
+	$res->connect("peer1");
+
+Adjusts a resource by calling C<drbdadm adjust [args,...] $resname>.
+If the first argument is a peer (i.e., not starting with "-"), the command is executed for that peer only.
+
 =head3 connect()
 	$res->connect();
 	$res->connect("--discard-my-data");
+	$res->connect("peer1", --discard-my-data");
 
-Connects a resource calling C<drbdadm connect [args,...] $resname>
+Connects a resource calling C<drbdadm connect [args,...] $resname>.
+If the first argument is a peer (i.e., not starting with "-"), the command is executed for that peer only.
 
 =head3 disconnect()
 	$res->disconnect();
 	$res->disconnect("--force");
 
 Disconnects a resource calling C<drbdadm disconnect [args,...] $resname>
+If the first argument is a peer (i.e., not starting with "-"), the command is executed for that peer only.
+
+=head3 pause()
+	$res->pause();
+	$res->pause("peer1");
+
+Pauses replication. This is an alias to C<disconnect>.
+If the first argument is a peer (i.e., not starting with "-"), the command is executed for that peer only.
+
+=head3 resume()
+	$res->resume();
+	$res->resume("peer1");
+
+Resumes a paused (i.e., disconnected) replication. This is an alias to C<adjust>.
+If the first argument is a peer (i.e., not starting with "-"), the command is executed for that peer only.
 
 =head3 verify()
 	$res->verify();
