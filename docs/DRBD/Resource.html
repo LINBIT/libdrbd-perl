@@ -67,6 +67,7 @@
           <li><a href="#status">status()</a></li>
           <li><a href="#get_cmd_stdout">get_cmd_stdout()</a></li>
           <li><a href="#get_cmd_stderr">get_cmd_stderr()</a></li>
+          <li><a href="#get_debug_output">get_debug_output()</a></li>
         </ul>
       </li>
     </ul>
@@ -372,6 +373,12 @@
 <pre><code>        print $res-&gt;get_cmd_stderr();</code></pre>
 
 <p>Get the stderr of the last external command.</p>
+
+<h3 id="get_debug_output">get_debug_output()</h3>
+
+<pre><code>        print $res-&gt;get_debug_output();</code></pre>
+
+<p>Gets debug output for externally executed commands (<code>drbdadm</code>,<code>drbdsetup</code>) including the commands arguments and its stdout/stderr. This is meant for developers. This requires to set <code>_debug</code> to a level greater or equal to 1. Most users don&#39;t want to use this getter, but set <code>_debug_to_stderr</code> instead.</p>
 
 <h1 id="EXAMPLES">EXAMPLES</h1>
 

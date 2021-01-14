@@ -39,11 +39,13 @@ sub new {
     my ( $class, $name ) = @_;
 
     my $self = bless {
-        name       => $name,
-        is_mesh    => 1,
-        cmd_stdout => '',
-        cmd_stderr => '',
-        _debug     => 0
+        name             => $name,
+        is_mesh          => 1,
+        cmd_stdout       => '',
+        cmd_stderr       => '',
+        debug_out        => '',
+        _debug           => 0,
+        _debug_to_stderr => 0
     }, $class;
 }
 
@@ -52,6 +54,7 @@ sub STORABLE_freeze {
 
     $self->{cmd_stdout} = '';
     $self->{cmd_stderr} = '';
+    $self->{debug_out} = '';
     delete( $self->{fh} );
 
     return ();
@@ -285,7 +288,7 @@ sub _pi {
     my $self = shift;
     my $fh   = $self->{fh};
     print $fh    "    " x $self->{indent}, @_;
-    print STDERR "    " x $self->{indent}, @_ if $self->{_debug};
+    print STDERR "    " x $self->{indent}, @_ if $self->{_debug} and $self->{_debug_to_stderr};
 }
 
 # strict is used for "real volumes", where non strict is used if we are only interested in the disk options.
@@ -472,7 +475,7 @@ sub _run_command {
     my $cmd  = shift;
     my @args = @_;
 
-    print STDERR "\n--- Executing: $cmd @args\n" if $self->{_debug};
+    $self->{debug_out} = "--- Executing: $cmd @args\n" if $self->{_debug};
 
     # should be run IPC::Cmd; but again, very very old perl
     my $in = '';
@@ -487,11 +490,13 @@ sub _run_command {
     $self->{cmd_stderr} = do { local $/; <CATCHERR> };
 
     if ( $self->{_debug} > 1 ) {
-        printf STDERR "| STDOUT: %s\n", $self->{cmd_stdout}
+        $self->{debug_out} .= sprintf "| STDOUT: %s\n", $self->{cmd_stdout}
           if $self->{cmd_stdout} ne '';
-        printf STDERR "| STDERR: %s\n", $self->{cmd_stderr}
+        $self->{debug_out} .= sprintf "| STDERR: %s\n", $self->{cmd_stderr}
           if $self->{cmd_stderr} ne '';
     }
+    print STDERR "\n", "$self->{debug_out}"
+      if $self->{_debug} and $self->{_debug_to_stderr} and $self->{debug_out} ne '';
 
     die "could not wait for $cmd @{args}" unless $waitstatus > 0;
     die "could not successfully execute $cmd @{args}" unless $rc == 0;
@@ -503,6 +508,10 @@ sub get_cmd_stdout {
 
 sub get_cmd_stderr {
     return $_[0]->{cmd_stderr};
+}
+
+sub get_debug_output {
+    return $_[0]->{debug_out};
 }
 
 sub _drbdadm {
@@ -1117,6 +1126,14 @@ Get the stdout of the last external command.
 	print $res->get_cmd_stderr();
 
 Get the stderr of the last external command.
+
+=head3 get_debug_output()
+
+	print $res->get_debug_output();
+
+Gets debug output for externally executed commands (C<drbdadm>,C<drbdsetup>) including the commands arguments and its stdout/stderr.
+This is meant for developers.
+This requires to set C<_debug> to a level greater or equal to 1. Most users don't want to use this getter, but set C<_debug_to_stderr> instead.
 
 =head1 EXAMPLES
 
