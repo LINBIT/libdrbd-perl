@@ -122,6 +122,18 @@ sub delete_node {
     return $self;
 }
 
+sub get_name {
+    return $_[0]->{name};
+}
+
+sub set_name {
+    my ( $self, $name ) = @_;
+
+    $self->{name} = $name;
+
+    return $self;
+}
+
 sub set_mesh {
     my ( $self, $is_mesh ) = @_;
 
@@ -855,6 +867,18 @@ If a value is passed, a temporary fake res file is generated with the given opti
 	my $res = LINBIT::DRBD::Resource->new('resname');
 
 Create a new resource object with the given DRBD resource name.
+
+=head2 get_name()
+
+	my $name = $res->get_name();
+
+Get the name of the resource.
+
+=head2 set_name($resname)
+
+	my $name = $res->set_name('newname');
+
+Sets the name in the resource object. Note that this does not rename a resource on DRBD level. In order to do that, you want to C<down> the resource, remove the old C<.res> file, write the new one, C<up> the resource.
 
 =head2 add_volume()
 

@@ -23,6 +23,8 @@
   <li><a href="#METHODS">METHODS</a>
     <ul>
       <li><a href="#new">new()</a></li>
+      <li><a href="#get_name">get_name()</a></li>
+      <li><a href="#set_name-resname">set_name($resname)</a></li>
       <li><a href="#add_volume">add_volume()</a></li>
       <li><a href="#get_volume">get_volume()</a></li>
       <li><a href="#delete_volume">delete_volume()</a></li>
@@ -120,6 +122,18 @@
 <pre><code>        my $res = LINBIT::DRBD::Resource-&gt;new(&#39;resname&#39;);</code></pre>
 
 <p>Create a new resource object with the given DRBD resource name.</p>
+
+<h2 id="get_name">get_name()</h2>
+
+<pre><code>        my $name = $res-&gt;get_name();</code></pre>
+
+<p>Get the name of the resource.</p>
+
+<h2 id="set_name-resname">set_name($resname)</h2>
+
+<pre><code>        my $name = $res-&gt;set_name(&#39;newname&#39;);</code></pre>
+
+<p>Sets the name in the resource object. Note that this does not rename a resource on DRBD level. In order to do that, you want to <code>down</code> the resource, remove the old <code>.res</code> file, write the new one, <code>up</code> the resource.</p>
 
 <h2 id="add_volume">add_volume()</h2>
 
