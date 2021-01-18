@@ -17,7 +17,7 @@
   <li><a href="#METHODS">METHODS</a>
     <ul>
       <li><a href="#new">new()</a></li>
-      <li><a href="#set_nodes-n0-n1">set_nodes($n0, $n1)</a></li>
+      <li><a href="#set_nodes-n0-n1-n0_nif-n1_nif">set_nodes($n0, $n1 [, n0_nif, n1_nif])</a></li>
       <li><a href="#add_volume">add_volume()</a></li>
       <li><a href="#get_volume-id">get_volume($id)</a></li>
       <li><a href="#delete_volume-id">delete_volume($id)</a></li>
@@ -46,13 +46,14 @@
 
 <h2 id="new">new()</h2>
 
-<pre><code>        my $con = LINBIT::DRBD::Resource-&gt;new([n0, n1]);</code></pre>
+<pre><code>        my $con = LINBIT::DRBD::Resource-&gt;new([n0, n1, n0_nif, n1_nif]);</code></pre>
 
-<p>Create a new connection object with the given <code>LINBIT::DRBD::Node</code> objects.</p>
+<p>Create a new connection object with the given <code>LINBIT::DRBD::Node</code> objects an their optional interface names.</p>
 
-<h2 id="set_nodes-n0-n1">set_nodes($n0, $n1)</h2>
+<h2 id="set_nodes-n0-n1-n0_nif-n1_nif">set_nodes($n0, $n1 [, n0_nif, n1_nif])</h2>
 
-<pre><code>        $con-&gt;set_nodes($n0, n1);</code></pre>
+<pre><code>        $con-&gt;set_nodes($n0, n1);
+        $con-&gt;set_nodes($n0, n1, &quot;default&quot;, &quot;eth0&quot;);</code></pre>
 
 <p>Set the <code>LINBIT::DRBD::Node</code> objects to the connection.</p>
 

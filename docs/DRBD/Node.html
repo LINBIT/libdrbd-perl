@@ -56,21 +56,24 @@
 
 <h2 id="set_address">set_address()</h2>
 
-<pre><code>        $node-&gt;set_address(&#39;1.2.3.4&#39;);</code></pre>
+<pre><code>        $node-&gt;set_address(&#39;1.2.3.4&#39;);
+        $node-&gt;set_address(&#39;1.2.3.4&#39;, &#39;eth0&#39;);</code></pre>
 
-<p>Set the address as defined by <code>drbd.conf(5)</code></p>
+<p>Set the address as defined by <code>drbd.conf(5)</code>. Takes an optional, arbitrary interface name (default: &quot;default&quot;).</p>
 
 <h2 id="set_port">set_port()</h2>
 
-<pre><code>        $node-&gt;set_port(7000);</code></pre>
+<pre><code>        $node-&gt;set_port(7000);
+        $node-&gt;set_port(7000, &#39;eth0&#39;);</code></pre>
 
-<p>Set the port that is used for the DRBD resource on this node.</p>
+<p>Set the port that is used for the DRBD resource on this node. Takes an optional, arbitrary interface name (default: &quot;default&quot;).</p>
 
 <h2 id="set_address_type">set_address_type()</h2>
 
-<pre><code>        $node-&gt;set_address_type(&#39;ipv4&#39;);</code></pre>
+<pre><code>        $node-&gt;set_address_type(&#39;ipv4&#39;);
+        $node-&gt;set_address_type(&#39;ipv4&#39;, &#39;eth0&#39;);</code></pre>
 
-<p>Set the address type. This can be &#39;ipv4&#39; (default) or &#39;ipv6&#39;.</p>
+<p>Set the address type. This can be &#39;ipv4&#39; (default) or &#39;ipv6&#39;. Takes an optional, arbitrary interface name (default: &quot;default&quot;).</p>
 
 <h2 id="add_volume">add_volume()</h2>
 

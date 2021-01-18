@@ -20,18 +20,32 @@ package LINBIT::DRBD::Connection;
 use strict;
 use warnings;
 
-sub new {
-    my ( $class, $node1, $node2 ) = @_;
+use LINBIT::DRBD::Tools qw( nif_or_default );
 
-    my $self = bless { node1 => $node1, node2 => $node2 }, $class;
+sub new {
+    my ( $class, $node1, $node2, $node1_nif, $node2_nif ) = @_;
+    $node1_nif = nif_or_default($node1_nif);
+    $node2_nif = nif_or_default($node2_nif);
+
+    my $self = bless {
+        node1     => $node1,
+        node1_nif => $node1_nif,
+        node2     => $node2,
+        node2_nif => $node2_nif,
+    }, $class;
 }
 
 sub set_nodes {
-	my ($self, $node1, $node2) = @_;
-	$self->{node1} = $node1;
-	$self->{node2} = $node2;
+    my ( $self, $node1, $node2, $node1_nif, $node2_nif ) = @_;
+    $node1_nif = nif_or_default($node1_nif);
+    $node2_nif = nif_or_default($node2_nif);
 
-	return $self;
+    $self->{node1}     = $node1;
+    $self->{node1_nif} = $node1_nif;
+    $self->{node2}     = $node2;
+    $self->{node2_nif} = $node2_nif;
+
+    return $self;
 }
 
 sub add_volume {
@@ -114,13 +128,14 @@ Methods return the object itself, which allows for:
 
 =head2 new()
 
-	my $con = LINBIT::DRBD::Resource->new([n0, n1]);
+	my $con = LINBIT::DRBD::Resource->new([n0, n1, n0_nif, n1_nif]);
 
-Create a new connection object with the given C<LINBIT::DRBD::Node> objects.
+Create a new connection object with the given C<LINBIT::DRBD::Node> objects an their optional interface names.
 
-=head2 set_nodes($n0, $n1)
+=head2 set_nodes($n0, $n1 [, n0_nif, n1_nif])
 
 	$con->set_nodes($n0, n1);
+	$con->set_nodes($n0, n1, "default", "eth0");
 
 Set the C<LINBIT::DRBD::Node> objects to the connection.
 

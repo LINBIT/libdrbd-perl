@@ -19,36 +19,46 @@ package LINBIT::DRBD::Node;
 
 use strict;
 use warnings;
+use LINBIT::DRBD::Tools qw( nif_or_default );
 
 sub new {
-	my ($class, $name, $id) = @_;
+    my ( $class, $name, $id ) = @_;
 
-	# has to match 'uname -n'
-	my $self = bless { name => $name, id => $id, address_type => "ipv4" }, $class;
+    # has to match 'uname -n'
+    my $self = bless {
+        name => $name,
+        id   => $id,
+        nifs => { default => { address_type => "ipv4" } }
+    }, $class;
 }
 
 sub set_address {
-    my ( $self, $address ) = @_;
+    my ( $self, $address, $nif ) = @_;
+    $nif = nif_or_default($nif);
 
-	 $self->{address} = $address;
+    $self->{nifs}{$nif}{address}      = $address;
+    $self->{nifs}{$nif}{address_type} = "ipv4"
+      unless defined $self->{nifs}{$nif}{address_type};
 
-	 return $self;
+    return $self;
 }
 
 sub set_port {
-    my ( $self, $port ) = @_;
+    my ( $self, $port, $nif ) = @_;
+    $nif = nif_or_default($nif);
 
-	 $self->{port} = $port;
+    $self->{nifs}{$nif}{port} = $port;
 
-	 return $self;
+    return $self;
 }
 
 sub set_address_type {
-    my ( $self, $address_type ) = @_;
+    my ( $self, $address_type, $nif ) = @_;
+    $nif = nif_or_default($nif);
 
-	 $self->{address_type} = $address_type;
+    $self->{nifs}{$nif}{address_type} = $address_type;
 
-	 return $self;
+    return $self;
 }
 
 sub add_volume {
@@ -110,20 +120,23 @@ Create a new node object with the given host name (has to match C<uname -n>) and
 =head2 set_address()
 
 	$node->set_address('1.2.3.4');
+	$node->set_address('1.2.3.4', 'eth0');
 
-Set the address as defined by C<drbd.conf(5)>
+Set the address as defined by C<drbd.conf(5)>. Takes an optional, arbitrary interface name (default: "default").
 
 =head2 set_port()
 
 	$node->set_port(7000);
+	$node->set_port(7000, 'eth0');
 
-Set the port that is used for the DRBD resource on this node.
+Set the port that is used for the DRBD resource on this node. Takes an optional, arbitrary interface name (default: "default").
 
 =head2 set_address_type()
 
 	$node->set_address_type('ipv4');
+	$node->set_address_type('ipv4', 'eth0');
 
-Set the address type. This can be 'ipv4' (default) or 'ipv6'.
+Set the address type. This can be 'ipv4' (default) or 'ipv6'. Takes an optional, arbitrary interface name (default: "default").
 
 =head2 add_volume()
 

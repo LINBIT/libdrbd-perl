@@ -340,7 +340,7 @@ sub _write_node {
         $self->_write_volume($_, 1);
     }
     $self->_pi(
-        "address $node->{address_type} $node->{address}:$node->{port};\n");
+        "address $node->{nifs}{default}{address_type} $node->{nifs}{default}{address}:$node->{nifs}{default}{port};\n") if $self->{is_mesh};
     $self->_pi("node-id $node->{id};\n");
     $self->{indent}--;
 
@@ -350,19 +350,24 @@ sub _write_node {
 sub _write_connection {
     my ( $self, $connection ) = @_;
 
-    my $h1 = $connection->{node1};
-    my $h2 = $connection->{node2};
+    my $h1     = $connection->{node1};
+    my $h2     = $connection->{node2};
+    my $h1_nif = $connection->{node1_nif};
+    my $h2_nif = $connection->{node2_nif};
 
     $self->_pi("connection {\n");
 
     $self->{indent}++;
-    foreach ( $h1, $h2 ) {
-        $self->_pi( "host $_->{name} address $_->{address_type} $_->{address}:$_->{port};\n" );
+    foreach ( [ $h1, $h1_nif ], [ $h2, $h2_nif ] ) {
+        my ( $h, $nif ) = @$_;
+        $self->_pi(
+"host $h->{name} address $h->{nifs}{$nif}{address_type} $h->{nifs}{$nif}{address}:$h->{nifs}{$nif}{port};\n"
+        );
     }
     foreach ( @{ $connection->{volumes} } ) {
         $self->_write_volume( $_, 0 );
     }
-    for my $section ("net", "disk") {
+    for my $section ( "net", "disk" ) {
         my $opt_dict = $connection->{"${section}_options"};
         $self->_write_options_section( $opt_dict, $section );
     }
