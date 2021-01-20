@@ -69,6 +69,12 @@ sub _get_file_path {
     return "/etc/drbd.d/${path}.res";
 }
 
+sub _gen_address {
+    my ( $type, $address, $port ) = @_;
+    $address = "[${address}]" if $type eq 'ipv6';
+    return "address $type ${address}:${port}";
+}
+
 sub add_volume {
     my ( $self, $volume ) = @_;
 
@@ -337,10 +343,16 @@ sub _write_node {
 
     $self->{indent}++;
     foreach ( @{ $node->{volumes} } ) {
-        $self->_write_volume($_, 1);
+        $self->_write_volume( $_, 1 );
     }
     $self->_pi(
-        "address $node->{nifs}{default}{address_type} $node->{nifs}{default}{address}:$node->{nifs}{default}{port};\n") if $self->{is_mesh};
+        _gen_address(
+            $node->{nifs}{default}{address_type},
+            $node->{nifs}{default}{address},
+            $node->{nifs}{default}{port}
+          )
+          . ";\n"
+    ) if $self->{is_mesh};
     $self->_pi("node-id $node->{id};\n");
     $self->{indent}--;
 
@@ -360,9 +372,11 @@ sub _write_connection {
     $self->{indent}++;
     foreach ( [ $h1, $h1_nif ], [ $h2, $h2_nif ] ) {
         my ( $h, $nif ) = @$_;
-        $self->_pi(
-"host $h->{name} address $h->{nifs}{$nif}{address_type} $h->{nifs}{$nif}{address}:$h->{nifs}{$nif}{port};\n"
-        );
+        my $address = $h->{nifs}{$nif}{address};
+        my $type    = $h->{nifs}{$nif}{address_type};
+        $self->_pi( "host $h->{name} "
+              . _gen_address( $type, ${address}, $h->{nifs}{$nif}{port} )
+              . ";\n" );
     }
     foreach ( @{ $connection->{volumes} } ) {
         $self->_write_volume( $_, 0 );
