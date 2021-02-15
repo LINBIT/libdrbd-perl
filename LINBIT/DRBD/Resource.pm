@@ -123,7 +123,7 @@ sub get_node {
 sub delete_node {
     my ( $self, $node_name ) = @_;
 
-    $self->{nodes} = [ grep { $_->{name} != $node_name } @{ $self->{nodes} } ];
+    $self->{nodes} = [ grep { $_->{name} ne $node_name } @{ $self->{nodes} } ];
 
     return $self;
 }
