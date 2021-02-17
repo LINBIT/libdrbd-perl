@@ -716,6 +716,15 @@ sub status {
     return @$status[0];
 }
 
+sub local_dstate {
+    my $self = shift;
+
+    $self->_drbdadm('dstate');
+    my $dstate = $self->{cmd_stdout};
+
+    return ( split /\//, $dstate, 2 )[0];
+}
+
 sub wait_for_usable {
     my ( $self, $timeout ) = @_;
 
@@ -1156,7 +1165,13 @@ Starts a verify process calling C<drbdadm verify $resname>
 
 	$res->status();
 
-Calls C<drbdsetup status --json $resname> and return the hash matching this resource.
+Calls C<drbdsetup status --json $resname> and returns the hash matching this resource.
+
+=head3 local_dstate()
+
+	$res->local_dstate();
+
+Calls C<drbdadm dstate> and returns the first element (i.e., the local dstate).
 
 =head3 get_cmd_stdout()
 

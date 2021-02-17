@@ -67,6 +67,7 @@
           <li><a href="#resume-res-resume-res-resume-peer1">resume() $res-&gt;resume(); $res-&gt;resume(&quot;peer1&quot;);</a></li>
           <li><a href="#verify-res-verify">verify() $res-&gt;verify();</a></li>
           <li><a href="#status">status()</a></li>
+          <li><a href="#local_dstate">local_dstate()</a></li>
           <li><a href="#get_cmd_stdout">get_cmd_stdout()</a></li>
           <li><a href="#get_cmd_stderr">get_cmd_stderr()</a></li>
           <li><a href="#get_debug_output">get_debug_output()</a></li>
@@ -374,7 +375,13 @@
 
 <pre><code>        $res-&gt;status();</code></pre>
 
-<p>Calls <code>drbdsetup status --json $resname</code> and return the hash matching this resource.</p>
+<p>Calls <code>drbdsetup status --json $resname</code> and returns the hash matching this resource.</p>
+
+<h3 id="local_dstate">local_dstate()</h3>
+
+<pre><code>        $res-&gt;local_dstate();</code></pre>
+
+<p>Calls <code>drbdadm dstate</code> and returns the first element (i.e., the local dstate).</p>
 
 <h3 id="get_cmd_stdout">get_cmd_stdout()</h3>
 
