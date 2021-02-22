@@ -730,9 +730,12 @@ sub wait_for_usable {
 
     $timeout = 30 if not defined $timeout;
 
-    eval { $self->_drbdsetup( 'wait-connect-resource', '--wfc-timeout', $timeout ); };
+    eval {
+        $self->_drbdsetup( 'wait-connect-resource', '--wfc-timeout', $timeout,
+            '--degr-wfc-timeout', $timeout, '--outdated-wfc-timeout',
+            $timeout );
+    };
     if ($@) {
-        warn $@;
         open( my $fh, '-|', 'drbdadm', 'dstate', $self->{name} ) or die $!;
         while ( my $line = <$fh> ) {
             die "wait-connect-resource failed AND none UpToDate"
