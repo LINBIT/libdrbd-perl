@@ -60,12 +60,13 @@
           <li><a href="#secondary">secondary()</a></li>
           <li><a href="#create_md-volid-gid-up2date">create_md($volid, [$gid, [$up2date]])</a></li>
           <li><a href="#initial_sync">initial_sync()</a></li>
-          <li><a href="#adjust-res-adjust-res-connect-peer1">adjust() $res-&gt;adjust(); $res-&gt;connect(&quot;peer1&quot;);</a></li>
-          <li><a href="#connect-res-connect-res-connect---discard-my-data-res-connect-peer1---discard-my-data">connect() $res-&gt;connect(); $res-&gt;connect(&quot;--discard-my-data&quot;); $res-&gt;connect(&quot;peer1&quot;, --discard-my-data&quot;);</a></li>
-          <li><a href="#disconnect-res-disconnect-res-disconnect---force">disconnect() $res-&gt;disconnect(); $res-&gt;disconnect(&quot;--force&quot;);</a></li>
-          <li><a href="#pause-res-pause-res-pause-peer1">pause() $res-&gt;pause(); $res-&gt;pause(&quot;peer1&quot;);</a></li>
-          <li><a href="#resume-res-resume-res-resume-peer1">resume() $res-&gt;resume(); $res-&gt;resume(&quot;peer1&quot;);</a></li>
-          <li><a href="#verify-res-verify">verify() $res-&gt;verify();</a></li>
+          <li><a href="#adjust">adjust()</a></li>
+          <li><a href="#connect">connect()</a></li>
+          <li><a href="#disconnect">disconnect()</a></li>
+          <li><a href="#invalidate">invalidate()</a></li>
+          <li><a href="#pause">pause()</a></li>
+          <li><a href="#resume">resume()</a></li>
+          <li><a href="#verify">verify()</a></li>
           <li><a href="#status">status()</a></li>
           <li><a href="#local_dstate">local_dstate()</a></li>
           <li><a href="#get_cmd_stdout">get_cmd_stdout()</a></li>
@@ -101,7 +102,7 @@
 
 <h1 id="VERSION">VERSION</h1>
 
-<p>0.2.1</p>
+<p>0.3.0</p>
 
 <h1 id="CLASS-METHODS">CLASS METHODS</h1>
 
@@ -347,27 +348,53 @@
 
 <p>Starts an initial sync by calling <code>drbdadm primary --force $resname</code></p>
 
-<h3 id="adjust-res-adjust-res-connect-peer1">adjust() $res-&gt;adjust(); $res-&gt;connect(&quot;peer1&quot;);</h3>
+<h3 id="adjust">adjust()</h3>
+
+<pre><code>        $res-&gt;adjust();
+        $res-&gt;connect(&quot;peer1&quot;);</code></pre>
 
 <p>Adjusts a resource by calling <code>drbdadm adjust [args,...] $resname</code>. If the first argument is a peer (i.e., not starting with &quot;-&quot;), the command is executed for that peer only.</p>
 
-<h3 id="connect-res-connect-res-connect---discard-my-data-res-connect-peer1---discard-my-data">connect() $res-&gt;connect(); $res-&gt;connect(&quot;--discard-my-data&quot;); $res-&gt;connect(&quot;peer1&quot;, --discard-my-data&quot;);</h3>
+<h3 id="connect">connect()</h3>
+
+<pre><code>        $res-&gt;connect();
+        $res-&gt;connect(&quot;--discard-my-data&quot;);
+        $res-&gt;connect(&quot;peer1&quot;, --discard-my-data&quot;);</code></pre>
 
 <p>Connects a resource calling <code>drbdadm connect [args,...] $resname</code>. If the first argument is a peer (i.e., not starting with &quot;-&quot;), the command is executed for that peer only.</p>
 
-<h3 id="disconnect-res-disconnect-res-disconnect---force">disconnect() $res-&gt;disconnect(); $res-&gt;disconnect(&quot;--force&quot;);</h3>
+<h3 id="disconnect">disconnect()</h3>
+
+<pre><code>        $res-&gt;disconnect();
+        $res-&gt;disconnect(&quot;--force&quot;);</code></pre>
 
 <p>Disconnects a resource calling <code>drbdadm disconnect [args,...] $resname</code> If the first argument is a peer (i.e., not starting with &quot;-&quot;), the command is executed for that peer only.</p>
 
-<h3 id="pause-res-pause-res-pause-peer1">pause() $res-&gt;pause(); $res-&gt;pause(&quot;peer1&quot;);</h3>
+<h3 id="invalidate">invalidate()</h3>
+
+<pre><code>        $res-&gt;invalidate();
+        $res-&gt;invalidate(&quot;--force&quot;);
+        $res-&gt;invalidate(&quot;peer1&quot;, --force&quot;);</code></pre>
+
+<p>Invalidate a resource by calling <code>drbdadm invalidate [args,...] $resname</code>. If the first argument is a peer (i.e., not starting with &quot;-&quot;), the command is executed for that peer, trying to sync from that peer.</p>
+
+<h3 id="pause">pause()</h3>
+
+<pre><code>        $res-&gt;pause();
+        $res-&gt;pause(&quot;peer1&quot;);</code></pre>
 
 <p>Pauses replication. This is an alias to <code>disconnect</code>. If the first argument is a peer (i.e., not starting with &quot;-&quot;), the command is executed for that peer only.</p>
 
-<h3 id="resume-res-resume-res-resume-peer1">resume() $res-&gt;resume(); $res-&gt;resume(&quot;peer1&quot;);</h3>
+<h3 id="resume">resume()</h3>
+
+<pre><code>        $res-&gt;resume();
+        $res-&gt;resume(&quot;peer1&quot;);</code></pre>
 
 <p>Resumes a paused (i.e., disconnected) replication. This is an alias to <code>adjust</code>. If the first argument is a peer (i.e., not starting with &quot;-&quot;), the command is executed for that peer only.</p>
 
-<h3 id="verify-res-verify">verify() $res-&gt;verify();</h3>
+<h3 id="verify">verify()</h3>
+
+<pre><code>        $res-&gt;verify();</code></pre>
 
 <p>Starts a verify process calling <code>drbdadm verify $resname</code></p>
 
