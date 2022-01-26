@@ -665,6 +665,12 @@ sub initial_sync {
     $self->_drbdadm( "secondary" );
 }
 
+sub invalidate {
+    my $self = shift;
+
+    $self->_drbdadm_maybe_node( "invalidate", @_ );
+}
+
 sub create_md {
     my ( $self, $volume, $uuid, $uptodate ) = @_;
 
@@ -1124,6 +1130,7 @@ Calls C<drbdadm create-md --force $resname/$volid>. If a $gid is given, it is se
 Starts an initial sync by calling C<drbdadm primary --force $resname>
 
 =head3 adjust()
+
 	$res->adjust();
 	$res->connect("peer1");
 
@@ -1131,6 +1138,7 @@ Adjusts a resource by calling C<drbdadm adjust [args,...] $resname>.
 If the first argument is a peer (i.e., not starting with "-"), the command is executed for that peer only.
 
 =head3 connect()
+
 	$res->connect();
 	$res->connect("--discard-my-data");
 	$res->connect("peer1", --discard-my-data");
@@ -1139,13 +1147,24 @@ Connects a resource calling C<drbdadm connect [args,...] $resname>.
 If the first argument is a peer (i.e., not starting with "-"), the command is executed for that peer only.
 
 =head3 disconnect()
+
 	$res->disconnect();
 	$res->disconnect("--force");
 
 Disconnects a resource calling C<drbdadm disconnect [args,...] $resname>
 If the first argument is a peer (i.e., not starting with "-"), the command is executed for that peer only.
 
+=head3 invalidate()
+
+	$res->invalidate();
+	$res->invalidate("--force");
+	$res->invalidate("peer1", --force");
+
+Invalidate a resource by calling C<drbdadm invalidate [args,...] $resname>.
+If the first argument is a peer (i.e., not starting with "-"), the command is executed for that peer, trying to sync from that peer.
+
 =head3 pause()
+
 	$res->pause();
 	$res->pause("peer1");
 
@@ -1153,6 +1172,7 @@ Pauses replication. This is an alias to C<disconnect>.
 If the first argument is a peer (i.e., not starting with "-"), the command is executed for that peer only.
 
 =head3 resume()
+
 	$res->resume();
 	$res->resume("peer1");
 
@@ -1160,6 +1180,7 @@ Resumes a paused (i.e., disconnected) replication. This is an alias to C<adjust>
 If the first argument is a peer (i.e., not starting with "-"), the command is executed for that peer only.
 
 =head3 verify()
+
 	$res->verify();
 
 Starts a verify process calling C<drbdadm verify $resname>
